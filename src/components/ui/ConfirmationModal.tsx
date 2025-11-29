@@ -42,12 +42,12 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </p>
         </div>
 
-        {/* Botones de acción */}
-        <div className="p-4 bg-gray-50 flex gap-3 justify-end">
+        {/* Botones de acción - MODIFICADO: justify-between para separar botones */}
+        <div className="p-4 bg-gray-50 flex gap-3 justify-between">
           <Button 
             variant="secondary" 
             onClick={onClose}
-            className="w-full sm:w-auto font-medium"
+            className="w-auto font-medium px-6" // Agregado px-6 para mejor tamaño
           >
             Cancelar
           </Button>
@@ -57,7 +57,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className="w-full sm:w-auto font-medium shadow-red-200 shadow-md"
+            className="w-auto font-medium shadow-red-200 shadow-md px-6"
           >
             Sí, eliminar
           </Button>

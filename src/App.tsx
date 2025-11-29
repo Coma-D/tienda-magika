@@ -19,7 +19,7 @@ import { useCart } from './hooks/useCart';
 import { useCollection } from './hooks/useCollection';
 import { mockCards } from './data/mockData';
 import { Card } from './types';
-import { ConfirmationModal } from './components/ui/ConfirmationModal'; // NUEVO IMPORT
+import { ConfirmationModal } from './components/ui/ConfirmationModal';
 
 type View = 'auth' | 'catalog' | 'collection' | 'marketplace' | 'community' | 'support' | 'cart' | 'checkout';
 type AuthView = 'login' | 'register' | 'forgot-password';
@@ -30,7 +30,6 @@ function App() {
   const { user } = useAuth();
   const collection = useCollection(user?.id);
   
-  // ESTADO PARA EL MODAL DE CONFIRMACIÓN
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -105,7 +104,6 @@ function App() {
     setCurrentView('catalog');
   };
 
-  // Acciones silenciosas (sin mensajes)
   const handleAddToCart = (card: Card) => {
     addToCart(card);
   };
@@ -123,7 +121,6 @@ function App() {
     setSelectedCard(updatedCard);
   };
 
-  // Acciones destructivas con confirmación
   const handleDeleteCardFromCatalog = (cardId: string) => {
     openConfirmation(
       'Eliminar carta',
@@ -163,7 +160,7 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen bg-black">
         <Header currentView={currentView} onNavigate={handleNavigate} onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
         <main className="pt-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -177,18 +174,19 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black text-gray-200"> {/* TEXTO SUAVE */}
       <Header currentView={currentView} onNavigate={handleNavigate} onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} currentView={currentView} onNavigate={handleNavigate} />
 
       <main className="pt-16">
         {currentView === 'catalog' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="relative rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 p-8 mb-10 text-white shadow-xl overflow-hidden">
+            <div className="relative rounded-2xl bg-gradient-to-r from-gray-900 to-black p-8 mb-10 text-gray-100 shadow-2xl overflow-hidden border border-gray-800">
               <div className="relative z-10">
-                <h1 className="text-4xl font-extrabold mb-4 tracking-tight">Explora el Multiverso</h1>
-                <p className="text-indigo-100 text-lg max-w-2xl">Encuentra las cartas más raras, completa tu colección y domina el juego con nuestra selección premium.</p>
+                <h1 className="text-4xl font-extrabold mb-4 tracking-tight text-white">Explora el Multiverso</h1>
+                <p className="text-gray-400 text-lg max-w-2xl">Encuentra las cartas más raras, completa tu colección y domina el juego con nuestra selección premium.</p>
               </div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             </div>
 
             <CardFilters
@@ -201,7 +199,8 @@ function App() {
               availableSets={availableSets}
             />
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            {/* Contenedor de cartas más claro (900) que el fondo (black) */}
+            <div className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6 min-h-[400px]">
               <CardGrid cards={filteredCards} onCardClick={setSelectedCard} onAddToCart={handleAddToCart} onAddToCollection={handleAddToCollection} />
             </div>
 
@@ -237,7 +236,6 @@ function App() {
         {currentView === 'checkout' && <Checkout onBack={() => setCurrentView('cart')} onSuccess={() => setCurrentView('catalog')} />}
       </main>
 
-      {/* RENDERIZADO DEL MODAL DE CONFIRMACIÓN */}
       <ConfirmationModal 
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}

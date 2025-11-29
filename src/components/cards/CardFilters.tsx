@@ -15,7 +15,7 @@ interface CardFiltersProps {
   selectedSet: string;
   onSetChange: (value: string) => void;
   onAddCard?: () => void;
-  availableSets?: string[]; // Nueva prop opcional
+  availableSets?: string[];
 }
 
 export const CardFilters: React.FC<CardFiltersProps> = ({
@@ -30,7 +30,7 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
   selectedSet,
   onSetChange,
   onAddCard,
-  availableSets = [] // Valor por defecto
+  availableSets = []
 }) => {
   const rarities = [
     { value: 'Todas', label: 'Todas las Rarezas' },
@@ -59,17 +59,20 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
     { value: 'Land', label: 'Tierra' }
   ];
 
-  // Usamos la lista dinámica si existe, si no, usamos un fallback
   const setsToUse = availableSets.length > 0 ? availableSets : ['Colección Básica 2024'];
 
+  const darkInputClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500 placeholder-gray-500";
+  const darkSelectClasses = "w-full px-3 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-200";
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div className="bg-gray-900 rounded-xl shadow-md border border-gray-800 p-6 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
           <Input
             placeholder="Buscar por nombre..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
+            className={darkInputClasses}
           />
         </div>
         
@@ -77,7 +80,7 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
           <select
             value={selectedRarity}
             onChange={(e) => onRarityChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={darkSelectClasses}
           >
             {rarities.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -89,7 +92,7 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
           <select
             value={selectedColor}
             onChange={(e) => onColorChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={darkSelectClasses}
           >
             {colors.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -101,7 +104,7 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
           <select
             value={selectedType}
             onChange={(e) => onTypeChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={darkSelectClasses}
           >
             {types.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -113,7 +116,7 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
           <select
             value={selectedSet}
             onChange={(e) => onSetChange(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
+            className={`${darkSelectClasses} flex-1 min-w-0`}
           >
             <option value="Todos">Todas las Ediciones</option>
             {setsToUse.map(set => (
@@ -124,7 +127,7 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
           {onAddCard && (
             <Button 
               onClick={onAddCard} 
-              className="px-3 py-2 shadow-sm flex-shrink-0"
+              className="px-3 py-2 shadow-sm flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white border-none"
               title="Añadir nueva carta al catálogo"
             >
               <Plus className="h-5 w-5" />

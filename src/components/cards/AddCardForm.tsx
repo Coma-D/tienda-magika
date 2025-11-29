@@ -3,7 +3,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { Card } from '../../types';
-import { Upload, Trash2 } from 'lucide-react';
+import { Upload, Trash2, X, Plus, Check } from 'lucide-react';
 
 interface AddCardFormProps {
   isOpen: boolean;
@@ -13,6 +13,12 @@ interface AddCardFormProps {
   onAddSet?: (newSet: string) => void;
   onDeleteSet?: (set: string) => void;
 }
+
+const translations: Record<string, string> = {
+  Common: 'Común', Uncommon: 'Poco común', Rare: 'Rara', Epic: 'Épica', Legendary: 'Legendaria',
+  White: 'Blanco', Blue: 'Azul', Black: 'Negro', Red: 'Rojo', Green: 'Verde', Colorless: 'Incoloro',
+  Creature: 'Criatura', Spell: 'Hechizo', Artifact: 'Artefacto', Land: 'Tierra'
+};
 
 export const AddCardForm: React.FC<AddCardFormProps> = ({ 
   isOpen, 
@@ -24,27 +30,39 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [isCustomSet, setIsCustomSet] = useState(false);
+  const [customSetInputValue, setCustomSetInputValue] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    price: string;
+    rarity: string;
+    color: string;
+    type: string;
+    set: string;
+    description: string;
+    manaCoat: string;
+    image: string | null;
+  }>({
     name: '',
     price: '',
     rarity: 'Common',
     color: 'Colorless',
     type: 'Creature',
-    set: 'Colección Básica 2024',
+    set: availableSets[0] || 'Colección Básica 2024',
     description: '',
     manaCoat: '0',
-    image: '/sp_res5myxp7z.jpg'
+    image: null
   });
 
-  const defaultSets = [
-    'Colección Básica 2024', 'Alpha', 'Beta', 'Unlimited', 
-    'Arabian Nights', 'Antiquities', 'Legends', 'The Dark'
-  ];
-  const setsToUse = availableSets.length > 0 ? availableSets : defaultSets;
+  const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
+  const colors = ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless'];
+  const types = ['Creature', 'Spell', 'Artifact', 'Land'];
 
-  const handleChange = (field: string, value: string) => {
+  const t = (key: string) => translations[key] || key;
+  const formatCLP = (price: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
+
+  const handleChange = (field: string, value: string | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -52,17 +70,34 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
     const value = e.target.value;
     if (value === 'NEW_CUSTOM_SET') {
       setIsCustomSet(true);
+      setCustomSetInputValue('');
       handleChange('set', '');
     } else {
       setIsCustomSet(false);
       handleChange('set', value);
     }
   };
+  
+  const handleSaveCustomSet = () => {
+    if (customSetInputValue.trim() && onAddSet) {
+      onAddSet(customSetInputValue.trim());
+      handleChange('set', customSetInputValue.trim());
+      setIsCustomSet(false);
+      setCustomSetInputValue('');
+    }
+  };
+
+  const handleCancelCustomSet = () => {
+    setIsCustomSet(false);
+    setCustomSetInputValue('');
+    handleChange('set', availableSets.length > 0 ? availableSets[0] : 'Colección Básica 2024');
+  };
 
   const handleDeleteCurrentSet = () => {
-    if (isCustomSet || !formData.set || formData.set === 'NEW_CUSTOM_SET') return;
+    if (isCustomSet || !formData.set) return;
     if (onDeleteSet) {
       onDeleteSet(formData.set);
+      const setsToUse = availableSets.length > 0 ? availableSets : ['Colección Básica 2024'];
       handleChange('set', setsToUse[0] || '');
     }
   };
@@ -72,30 +107,26 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result as string }));
+        handleChange('image', reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
-
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (isCustomSet && formData.set.trim() && onAddSet) {
-      onAddSet(formData.set);
-    }
+    const finalImage = formData.image || 'https://placehold.co/400x600/1a1a1a/ffffff?text=Sin+Imagen';
 
     const newCard: Card = {
       id: Date.now().toString(),
-      name: formData.name,
-      image: formData.image,
+      name: formData.name || 'Nueva Carta',
+      image: finalImage,
       rarity: formData.rarity as any,
       color: formData.color as any,
       type: formData.type as any,
-      set: formData.set,
+      set: formData.set || 'Sin Edición',
       description: formData.description,
       price: parseFloat(formData.price) || 0,
       manaCoat: parseInt(formData.manaCoat) || 0,
@@ -106,149 +137,228 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
     
     setFormData({
       name: '', price: '', rarity: 'Common', color: 'Colorless', 
-      type: 'Creature', set: 'Colección Básica 2024', description: '', 
-      manaCoat: '0', image: '/sp_res5myxp7z.jpg'
+      type: 'Creature', set: availableSets[0] || '', description: '', 
+      manaCoat: '0', image: null
     });
     setIsCustomSet(false);
-    
+    setCustomSetInputValue('');
     onClose();
   };
 
+  // Clases de estilo oscuro y elegante
+  const darkInputClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500 placeholder-gray-500";
+  const darkSelectClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500";
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Añadir Carta al Catálogo" className="max-w-xl">
-      <form onSubmit={handleSubmit} className="space-y-5">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      showCloseButton={false}
+      // Fondo modal gray-900
+      className="max-w-[90vw] w-full h-[85vh] overflow-hidden flex flex-col p-0 rounded-3xl shadow-2xl !bg-gray-900 !border !border-gray-800"
+    >
+      <div className="flex h-full w-full">
         
-        {/* SUBIDA DE IMAGEN */}
-        <div className="flex justify-center mb-4">
-          <div 
-            className="relative w-32 h-44 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all overflow-hidden group"
-            onClick={() => fileInputRef.current?.click()}
+        {/* LADO IZQUIERDO: Imagen (Preview o Upload) */}
+        <div className="relative h-full w-[31.8%] flex-none bg-gray-900 flex items-center justify-center p-0 overflow-hidden rounded-l-3xl group">
+          
+          {formData.image ? (
+            // Si hay imagen, se muestra
+            <>
+              <img
+                src={formData.image}
+                alt="Preview"
+                className="relative w-full h-full max-w-full max-h-full object-contain z-10 shadow-black drop-shadow-xl"
+              />
+              <div 
+                className="absolute inset-0 z-20 bg-black/60 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-12 w-12 text-white mb-2" />
+                <span className="text-white font-bold">Cambiar Imagen</span>
+              </div>
+            </>
+          ) : (
+            // Si NO hay imagen, se muestra el placeholder de subida
+            <div 
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer bg-gray-800/50 border-2 border-dashed border-gray-700 m-4 rounded-2xl hover:border-blue-500 hover:bg-gray-800 transition-all"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-16 w-16 text-gray-500 mb-4" />
+              <span className="text-gray-300 font-bold text-lg">Subir Imagen de Carta</span>
+              <span className="text-gray-500 text-sm mt-2">Haz clic o arrastra aquí</span>
+            </div>
+          )}
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+        </div>
+
+        {/* LADO DERECHO: Formulario */}
+        <div className="flex-1 flex flex-col h-full bg-gray-900 relative min-w-0 rounded-r-3xl overflow-hidden">
+          
+          <button 
+            onClick={onClose}
+            className="absolute top-3 right-3 z-50 p-2 bg-gray-800 hover:bg-red-900 hover:text-red-100 rounded-full transition-colors text-gray-400 shadow-sm border border-gray-700"
           >
-            {formData.image !== '/sp_res5myxp7z.jpg' ? (
-              <>
-                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-white text-xs font-bold">Cambiar</span>
+            <X className="h-5 w-5" />
+          </button>
+
+          {/* CABECERA */}
+          <div className="flex-shrink-0 px-6 py-4 border-b border-gray-800 pr-14">
+            <div className="flex items-center gap-2 mb-2">
+              <Input 
+                value={formData.name} 
+                onChange={(e) => handleChange('name', e.target.value)}
+                placeholder="Nombre de la carta"
+                className={`text-xl font-bold ${darkInputClasses}`}
+                autoFocus
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2 items-center">
+              <select 
+                value={formData.rarity}
+                onChange={(e) => handleChange('rarity', e.target.value)}
+                className={`text-xs px-2 py-1 border rounded ${darkSelectClasses}`}
+              >
+                {rarities.map(r => <option key={r} value={r}>{t(r)}</option>)}
+              </select>
+              <select 
+                value={formData.color}
+                onChange={(e) => handleChange('color', e.target.value)}
+                className={`text-xs px-2 py-1 border rounded ${darkSelectClasses}`}
+              >
+                {colors.map(c => <option key={c} value={c}>{t(c)}</option>)}
+              </select>
+              <select 
+                value={formData.type}
+                onChange={(e) => handleChange('type', e.target.value)}
+                className={`text-xs px-2 py-1 border rounded ${darkSelectClasses}`}
+              >
+                {types.map(type => <option key={type} value={type}>{t(type)}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* CONTENIDO SCROLLABLE (Campos) */}
+          <div className="flex-grow px-6 py-4 overflow-y-auto custom-scrollbar flex flex-col gap-5">
+            
+            <div className="bg-gray-800 p-5 rounded-xl border border-gray-700">
+              <h3 className="font-bold text-gray-400 text-[10px] mb-2 uppercase tracking-widest">Texto de Reglas</h3>
+              <textarea 
+                className={`w-full p-2 border rounded text-sm outline-none resize-none ${darkInputClasses}`}
+                value={formData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Escribe la descripción o habilidades de la carta..."
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+              <div className="col-span-2 sm:col-span-1">
+                <h3 className="font-bold text-gray-400 text-[10px] uppercase tracking-widest mb-1">Edición</h3>
+                <div className="flex gap-1">
+                  {!isCustomSet ? (
+                    <select
+                      value={formData.set}
+                      onChange={handleSetSelectChange}
+                      className={`flex-1 h-9 px-2 border rounded text-sm ${darkSelectClasses}`}
+                    >
+                      {availableSets.map(set => (
+                        <option key={set} value={set}>{set}</option>
+                      ))}
+                      <option disabled>──────────</option>
+                      <option value="NEW_CUSTOM_SET">+ Crear nueva...</option>
+                    </select>
+                  ) : (
+                    <Input 
+                      value={customSetInputValue}
+                      onChange={(e) => setCustomSetInputValue(e.target.value)}
+                      placeholder="Nombre nueva edición"
+                      className={`h-9 text-sm flex-1 ${darkInputClasses}`}
+                      onKeyDown={(e) => { if(e.key === 'Enter') handleSaveCustomSet(); }}
+                      autoFocus
+                    />
+                  )}
+                  
+                  {!isCustomSet && onDeleteSet && (
+                    <button onClick={handleDeleteCurrentSet} className="p-2 text-red-400 border border-gray-700 rounded hover:bg-red-900/30" title="Borrar edición seleccionada">
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  )}
+                  
+                  {isCustomSet && (
+                    <>
+                      {/* Botón de Confirmar Nueva Edición */}
+                      <button 
+                        onClick={handleSaveCustomSet}
+                        disabled={!customSetInputValue.trim()}
+                        className="p-2 text-blue-400 border border-blue-900 rounded hover:bg-blue-900/30 disabled:opacity-50 disabled:hover:bg-transparent"
+                        title="Guardar nueva edición"
+                      >
+                        <Check className="h-5 w-5" />
+                      </button>
+                      {/* Botón de Cancelar */}
+                      <button 
+                        onClick={handleCancelCustomSet} 
+                        className="p-2 text-gray-400 border border-gray-700 rounded hover:bg-gray-800"
+                        title="Cancelar"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
                 </div>
-              </>
-            ) : (
-              <>
-                <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-xs text-gray-500 text-center px-2">Subir Imagen</span>
-              </>
-            )}
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+              </div>
+              
+              <div className="col-span-2 sm:col-span-1">
+                <h3 className="font-bold text-gray-400 text-[10px] uppercase tracking-widest mb-1">Coste</h3>
+                <div className="flex items-center gap-1">
+                  <Input 
+                    type="number" 
+                    value={formData.manaCoat} 
+                    onChange={(e) => handleChange('manaCoat', e.target.value)}
+                    className={`h-9 text-sm w-20 ${darkInputClasses}`}
+                  />
+                  <span className="text-gray-400 text-sm">Mana</span>
+                </div>
+              </div>
+
+              <div className="col-span-2 pt-2">
+                <h3 className="font-bold text-gray-400 text-[10px] uppercase tracking-widest">Precio Base</h3>
+                <Input 
+                  type="number" 
+                  value={formData.price} 
+                  onChange={(e) => handleChange('price', e.target.value)}
+                  placeholder="0"
+                  className={`h-9 text-sm ${darkInputClasses}`}
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        <Input
-          label="Nombre de la carta"
-          value={formData.name}
-          onChange={(e) => handleChange('name', e.target.value)}
-          placeholder="Ej: Shivan Dragon"
-          required
-        />
+          {/* PIE DE PÁGINA */}
+          <div className="flex-shrink-0 px-6 py-4 border-t border-gray-800">
+            <div className="flex justify-between items-end mb-4">
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5 font-bold uppercase tracking-wider">Precio Vista Previa</p>
+                <p className="text-lg font-bold text-gray-100">
+                  {formatCLP(parseFloat(formData.price) || 0)}
+                </p>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Precio Mercado (CLP)"
-            type="number"
-            value={formData.price}
-            onChange={(e) => handleChange('price', e.target.value)}
-            placeholder="5000"
-            required
-          />
-          <Input
-            label="Coste de Maná"
-            type="number"
-            value={formData.manaCoat}
-            onChange={(e) => handleChange('manaCoat', e.target.value)}
-            placeholder="0"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rareza</label>
-            <select
-              value={formData.rarity}
-              onChange={(e) => handleChange('rarity', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Botón de Añadir azul para combinar */}
+            <Button 
+              onClick={handleSubmit} 
+              loading={loading}
+              disabled={!formData.name}
+              className="w-full h-12 text-lg font-bold shadow-md hover:shadow-lg transition-all rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <option value="Common">Común</option>
-              <option value="Uncommon">Poco común</option>
-              <option value="Rare">Rara</option>
-              <option value="Epic">Épica</option>
-              <option value="Legendary">Legendaria</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-            <select
-              value={formData.color}
-              onChange={(e) => handleChange('color', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="White">Blanco</option>
-              <option value="Blue">Azul</option>
-              <option value="Black">Negro</option>
-              <option value="Red">Rojo</option>
-              <option value="Green">Verde</option>
-              <option value="Colorless">Incoloro</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-            <select
-              value={formData.type}
-              onChange={(e) => handleChange('type', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Creature">Criatura</option>
-              <option value="Spell">Hechizo</option>
-              <option value="Artifact">Artefacto</option>
-              <option value="Land">Tierra</option>
-            </select>
+              <Plus className="h-5 w-5 mr-2" /> Añadir al Catálogo
+            </Button>
           </div>
         </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Edición / Set</label>
-          <div className="flex gap-2">
-            <select
-              value={isCustomSet ? 'NEW_CUSTOM_SET' : formData.set}
-              onChange={handleSetSelectChange}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              {setsToUse.map(set => (
-                <option key={set} value={set}>{set}</option>
-              ))}
-              <option disabled>──────────</option>
-              <option value="NEW_CUSTOM_SET">+ Crear nueva edición...</option>
-            </select>
-            {!isCustomSet && onDeleteSet && (
-              <button type="button" onClick={handleDeleteCurrentSet} className="p-2 text-red-500 hover:bg-red-50 border border-gray-300 rounded-lg">
-                <Trash2 className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-          {isCustomSet && <Input value={formData.set} onChange={(e) => handleChange('set', e.target.value)} placeholder="Escribe el nombre de la nueva edición..." autoFocus required className="mt-2" />}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Texto de Reglas</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
-            placeholder="Descripción de la habilidad..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={3}
-          />
-        </div>
-
-        <Button type="submit" loading={loading} className="w-full">Añadir al Catálogo</Button>
-      </form>
+      </div>
     </Modal>
   );
 };

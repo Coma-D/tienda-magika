@@ -8,6 +8,7 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  showCloseButton?: boolean; // Nueva propiedad
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -15,7 +16,8 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
-  className
+  className,
+  showCloseButton = true // Por defecto es true
 }) => {
   
   useEffect(() => {
@@ -52,7 +54,8 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
           )}
           
-          {!title && (
+          {/* Solo mostramos la X por defecto si no hay título Y si showCloseButton es true */}
+          {!title && showCloseButton && (
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-50 p-2 bg-white/80 hover:bg-white rounded-full text-gray-500 hover:text-gray-800 transition-all shadow-sm backdrop-blur-sm"
@@ -61,7 +64,6 @@ export const Modal: React.FC<ModalProps> = ({
             </button>
           )}
           
-          {/* CAMBIO AQUÍ: Agregado 'h-full' para que el contenido llene el modal */}
           <div className="p-0 h-full">
             {children}
           </div>

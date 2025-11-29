@@ -51,18 +51,18 @@ export const CardItem: React.FC<CardItemProps> = ({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, scale: 1.02 }}
       transition={{ duration: 0.2 }}
-      className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-100 flex flex-col h-full relative"
+      className="group bg-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-800 flex flex-col h-full relative"
       onClick={onClick}
     >
       {/* 1. IMAGEN */}
-      <div className="relative w-full aspect-[63/88] bg-gray-900 overflow-hidden">
+      <div className="relative w-full aspect-[63/88] bg-gray-800 overflow-hidden">
         <img
           src={card.image}
           alt={card.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
           <Badge variant={rarityColors[card.rarity]} className="shadow-lg backdrop-blur-md bg-white/90 border border-white/20">
@@ -79,7 +79,7 @@ export const CardItem: React.FC<CardItemProps> = ({
           <button
             onClick={(e) => handleAction(e, onToggleFavorite)}
             className={`absolute top-2 left-2 p-2 rounded-full z-10 shadow-lg backdrop-blur-md transition-all duration-300 ${
-              isFavorite ? 'bg-red-500 text-white' : 'bg-black/30 text-white hover:bg-red-500'
+              isFavorite ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-red-500'
             }`}
           >
             <Heart className="h-4 w-4" fill={isFavorite ? 'currentColor' : 'none'} />
@@ -88,27 +88,26 @@ export const CardItem: React.FC<CardItemProps> = ({
       </div>
       
       {/* 2. INFORMACIÓN */}
-      <div className="p-4 flex flex-col flex-grow bg-white relative">
+      <div className="p-4 flex flex-col flex-grow bg-gray-900 relative">
         <div className="mb-2">
-          <h3 className="font-bold text-gray-900 text-lg leading-tight truncate group-hover:text-blue-600 transition-colors">
+          <h3 className="font-bold text-gray-200 text-lg leading-tight truncate group-hover:text-blue-400 transition-colors">
             {card.name}
           </h3>
-          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mt-1">{card.set}</p>
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mt-1">{card.set}</p>
         </div>
         
         {/* ZONA INFERIOR: Precio y Botones */}
-        <div className="mt-auto pt-3 border-t border-gray-50 relative h-10 flex items-center">
+        <div className="mt-auto pt-3 border-t border-gray-800 relative h-10 flex items-center">
           
-          {/* PRECIO: Modificado para ocupar más espacio */}
+          {/* PRECIO */}
           <span 
-            className="text-lg font-extrabold text-gray-900 tracking-tight truncate block w-full pr-2" 
+            className="text-lg font-extrabold text-gray-200 tracking-tight truncate block w-full pr-2" 
             title={formatCLP(card.price)}
           >
             {formatCLP(card.price)}
           </span>
           
-          {/* BOTONES: Posición Absoluta (Flotantes) */}
-          {/* Se posicionan encima del texto a la derecha */}
+          {/* BOTONES */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-2 z-20">
             <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
               {onRemove && (
@@ -127,7 +126,7 @@ export const CardItem: React.FC<CardItemProps> = ({
                 <Button
                   size="sm"
                   onClick={(e) => handleAction(e, () => onAddToCart(card))}
-                  className="h-9 w-9 p-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100 shadow-md border-white border"
+                  className="h-9 w-9 p-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/50 shadow-md border-transparent"
                   title="Añadir al carrito"
                 >
                   <ShoppingCart className="h-4 w-4" />
@@ -139,7 +138,7 @@ export const CardItem: React.FC<CardItemProps> = ({
                   size="sm"
                   variant="secondary"
                   onClick={(e) => handleAction(e, () => onAddToCollection(card))}
-                  className="h-9 w-9 p-0 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
+                  className="h-9 w-9 p-0 rounded-lg bg-purple-900/50 text-purple-300 hover:bg-purple-800/50 border border-purple-700"
                   title="Coleccionar"
                 >
                   <Plus className="h-4 w-4" />

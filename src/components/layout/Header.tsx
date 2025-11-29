@@ -35,11 +35,11 @@ export const Header: React.FC<HeaderProps> = ({
 
   if (!isAuthenticated) {
     return (
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-gray-900/90 shadow-md border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 CardTrader
               </h1>
             </div>
@@ -50,18 +50,18 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-40 transition-all duration-300">
+    <header className="bg-gray-900/90 backdrop-blur-md shadow-md border-b border-gray-800 sticky top-0 z-40 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <button
               onClick={onToggleMobileMenu}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="md:hidden p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-200"
             >
               <Menu className="h-5 w-5" />
             </button>
             <h1 
-              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer"
+              className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent cursor-pointer"
               onClick={() => onNavigate('catalog')}
             >
               CardTrader
@@ -75,8 +75,8 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onNavigate(item.id)}
                 className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
                   currentView === item.id
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                    ? 'text-blue-300 bg-blue-900/30'
+                    : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
                 }`}
               >
                 {item.label}
@@ -87,11 +87,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center space-x-4">
             <button
               onClick={() => onNavigate('cart')}
-              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="relative p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-300"
             >
-              <ShoppingCart className="h-5 w-5 text-gray-700" />
+              <ShoppingCart className="h-5 w-5" />
               {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center border border-gray-900 shadow-sm">
                   {cartItemCount}
                 </span>
               )}
@@ -101,17 +101,17 @@ export const Header: React.FC<HeaderProps> = ({
               <img
                 src={user?.avatar}
                 alt={user?.name}
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full border border-gray-700"
               />
-              <span className="hidden sm:block text-sm font-medium text-gray-700">
+              <span className="hidden sm:block text-sm font-medium text-gray-300">
                 {user?.name}
               </span>
               <button
                 onClick={handleLogout}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                 title="Cerrar sesión"
               >
-                <LogOut className="h-4 w-4 text-gray-600" />
+                <LogOut className="h-4 w-4 text-gray-400 hover:text-gray-200" />
               </button>
             </div>
           </div>

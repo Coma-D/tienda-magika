@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Plus, Minus, X, Pencil, Save, XCircle, Upload, Trash2 } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, X, Pencil, Save, XCircle, Upload, Trash2, Check } from 'lucide-react';
 import { Card } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -40,6 +40,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
   const [isCustomSet, setIsCustomSet] = useState(false);
+  const [customSetInputValue, setCustomSetInputValue] = useState('');
   const [editData, setEditData] = useState<Card | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,6 +53,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
     setIsEditing(false);
     setEditData(card);
     setIsCustomSet(false);
+    setCustomSetInputValue('');
   }, [card]);
 
   if (!card || !editData) return null;
@@ -67,12 +69,15 @@ export const CardDetail: React.FC<CardDetailProps> = ({
 
   const handleSaveChanges = () => {
     if (onEditCard && editData) {
-      if (isCustomSet && editData.set.trim() && onAddSet) {
-        onAddSet(editData.set);
+      if (isCustomSet && customSetInputValue.trim() && onAddSet) {
+        onAddSet(customSetInputValue.trim());
+        editData.set = customSetInputValue.trim();
       }
+      
       onEditCard(editData);
       setIsEditing(false);
       setIsCustomSet(false);
+      setCustomSetInputValue('');
     }
   };
 
@@ -84,11 +89,27 @@ export const CardDetail: React.FC<CardDetailProps> = ({
     const value = e.target.value;
     if (value === 'NEW_CUSTOM_SET') {
       setIsCustomSet(true);
+      setCustomSetInputValue('');
       handleEditChange('set', '');
     } else {
       setIsCustomSet(false);
       handleEditChange('set', value);
     }
+  };
+
+  const handleSaveCustomSet = () => {
+    if (customSetInputValue.trim() && onAddSet) {
+      onAddSet(customSetInputValue.trim());
+      handleEditChange('set', customSetInputValue.trim());
+      setIsCustomSet(false);
+      setCustomSetInputValue('');
+    }
+  };
+
+  const handleCancelCustomSet = () => {
+    setIsCustomSet(false);
+    setCustomSetInputValue('');
+    handleEditChange('set', availableSets.includes(editData.set) ? editData.set : availableSets[0] || '');
   };
 
   const handleDeleteCurrentSet = () => {
@@ -108,16 +129,21 @@ export const CardDetail: React.FC<CardDetailProps> = ({
     }
   };
 
-  const darkInputClasses = "bg-gray-950 border-gray-800 text-white focus:border-blue-500 placeholder-gray-500";
+  // Ajuste de colores: inputs bg-gray-800, texto gray-200
+  const darkInputClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500 placeholder-gray-500";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[90vw] w-full h-[85vh] overflow-hidden flex flex-col p-0 rounded-3xl shadow-2xl bg-black border border-black">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      showCloseButton={false}
+      // Fondo modal gray-900 para suavizar el negro puro
+      className="max-w-[90vw] w-full h-[85vh] overflow-hidden flex flex-col p-0 rounded-3xl shadow-2xl !bg-gray-900 !border !border-gray-800"
+    >
       <div className="flex h-full w-full">
         
-        {/* LADO IZQUIERDO: Imagen (31.8%) */}
-        <div className="relative h-full w-[31.8%] flex-none bg-black flex items-center justify-center p-0 overflow-hidden rounded-l-3xl group">
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black"></div>
-          
+        {/* LADO IZQUIERDO: Imagen */}
+        <div className="relative h-full w-[31.8%] flex-none bg-gray-900 flex items-center justify-center p-0 overflow-hidden rounded-l-3xl group">
           <img
             src={editData.image}
             alt={editData.name}
@@ -138,17 +164,17 @@ export const CardDetail: React.FC<CardDetailProps> = ({
         </div>
         
         {/* LADO DERECHO: Datos */}
-        <div className="flex-1 flex flex-col h-full bg-black relative min-w-0 rounded-r-3xl overflow-hidden">
+        <div className="flex-1 flex flex-col h-full bg-gray-900 relative min-w-0 rounded-r-3xl overflow-hidden">
           
           <button 
             onClick={onClose}
-            className="absolute top-3 right-3 z-50 p-2 bg-gray-900 hover:bg-red-900 hover:text-red-100 rounded-full transition-colors text-gray-400 shadow-sm border border-gray-800"
+            className="absolute top-3 right-3 z-50 p-2 bg-gray-800 hover:bg-red-900 hover:text-red-100 rounded-full transition-colors text-gray-400 shadow-sm border border-gray-700"
           >
             <X className="h-5 w-5" />
           </button>
 
           {/* CABECERA */}
-          <div className="flex-shrink-0 px-6 py-4 border-b border-gray-900 pr-14">
+          <div className="flex-shrink-0 px-6 py-4 border-b border-gray-800 pr-14">
             <div className="flex items-center gap-2 mb-2">
               {isEditing ? (
                 <Input 
@@ -158,9 +184,9 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                 />
               ) : (
                 <div className="flex items-center gap-2 w-full">
-                  <h1 className="text-3xl font-bold text-white leading-tight truncate">{editData.name}</h1>
+                  <h1 className="text-3xl font-bold text-gray-100 leading-tight truncate">{editData.name}</h1>
                   {onEditCard && !isEditing && (
-                    <button onClick={() => setIsEditing(true)} className="p-1.5 hover:bg-gray-900 text-gray-400 hover:text-blue-400 rounded-full transition-colors" title="Editar carta">
+                    <button onClick={() => setIsEditing(true)} className="p-1.5 hover:bg-gray-800 text-gray-400 hover:text-blue-400 rounded-full transition-colors" title="Editar carta">
                       <Pencil className="h-4 w-4" />
                     </button>
                   )}
@@ -206,8 +232,8 @@ export const CardDetail: React.FC<CardDetailProps> = ({
           {/* CONTENIDO SCROLLABLE */}
           <div className="flex-grow px-6 py-4 overflow-y-auto custom-scrollbar flex flex-col gap-5">
             
-            <div className="bg-gray-950 p-5 rounded-xl border border-gray-900">
-              <h3 className="font-bold text-gray-500 text-[10px] mb-2 uppercase tracking-widest">Texto de Reglas</h3>
+            <div className="bg-gray-800 p-5 rounded-xl border border-gray-700">
+              <h3 className="font-bold text-gray-400 text-[10px] mb-2 uppercase tracking-widest">Texto de Reglas</h3>
               {isEditing ? (
                 <textarea 
                   className={`w-full p-2 border rounded text-sm outline-none resize-none ${darkInputClasses}`}
@@ -224,7 +250,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
 
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
               <div className="col-span-2 sm:col-span-1">
-                <h3 className="font-bold text-gray-500 text-[10px] uppercase tracking-widest mb-1">Edición</h3>
+                <h3 className="font-bold text-gray-400 text-[10px] uppercase tracking-widest mb-1">Edición</h3>
                 {isEditing ? (
                   <div className="flex gap-1">
                     {!isCustomSet ? (
@@ -241,33 +267,44 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                       </select>
                     ) : (
                       <Input 
-                        value={editData.set} 
-                        onChange={(e) => handleEditChange('set', e.target.value)}
+                        value={customSetInputValue} 
+                        onChange={(e) => setCustomSetInputValue(e.target.value)}
                         placeholder="Nombre edición"
                         className={`h-9 text-sm flex-1 ${darkInputClasses}`}
                         autoFocus
+                        onKeyDown={(e) => { if(e.key === 'Enter') handleSaveCustomSet(); }}
                       />
                     )}
                     
                     {!isCustomSet && onDeleteSet && (
-                      <button onClick={handleDeleteCurrentSet} className="p-2 text-red-400 border border-gray-800 rounded hover:bg-red-900/30" title="Borrar edición">
+                      <button onClick={handleDeleteCurrentSet} className="p-2 text-red-400 border border-gray-700 rounded hover:bg-red-900/30" title="Borrar edición">
                         <Trash2 className="h-5 w-5" />
                       </button>
                     )}
                     
                     {isCustomSet && (
-                      <button onClick={() => { setIsCustomSet(false); handleEditChange('set', availableSets[0]); }} className="p-2 text-gray-400 border border-gray-800 rounded hover:bg-gray-900">
-                        <X className="h-5 w-5" />
-                      </button>
+                      <>
+                        <button 
+                          onClick={handleSaveCustomSet}
+                          disabled={!customSetInputValue.trim()}
+                          className="p-2 text-blue-400 border border-blue-900 rounded hover:bg-blue-900/30 disabled:opacity-50"
+                          title="Guardar nueva edición"
+                        >
+                          <Check className="h-5 w-5" />
+                        </button>
+                        <button onClick={handleCancelCustomSet} className="p-2 text-gray-400 border border-gray-700 rounded hover:bg-gray-800">
+                          <X className="h-5 w-5" />
+                        </button>
+                      </>
                     )}
                   </div>
                 ) : (
-                  <p className="text-white font-semibold text-base truncate">{editData.set}</p>
+                  <p className="text-gray-200 font-semibold text-base truncate">{editData.set}</p>
                 )}
               </div>
               
               <div className="col-span-2 sm:col-span-1">
-                <h3 className="font-bold text-gray-500 text-[10px] uppercase tracking-widest mb-1">Coste</h3>
+                <h3 className="font-bold text-gray-400 text-[10px] uppercase tracking-widest mb-1">Coste</h3>
                 {isEditing ? (
                   <div className="flex items-center gap-1">
                     <Input 
@@ -279,13 +316,13 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                     <span className="text-gray-400 text-sm">Mana</span>
                   </div>
                 ) : (
-                  <p className="text-white font-semibold text-base">{editData.manaCoat} Mana</p>
+                  <p className="text-gray-200 font-semibold text-base">{editData.manaCoat} Mana</p>
                 )}
               </div>
 
               {isEditing && (
                 <div className="col-span-2 pt-2">
-                  <h3 className="font-bold text-gray-500 text-[10px] uppercase tracking-widest">Precio Base</h3>
+                  <h3 className="font-bold text-gray-400 text-[10px] uppercase tracking-widest">Precio Base</h3>
                   <Input 
                     type="number" 
                     value={editData.price} 
@@ -298,14 +335,14 @@ export const CardDetail: React.FC<CardDetailProps> = ({
           </div>
 
           {/* PIE DE PÁGINA */}
-          <div className="flex-shrink-0 px-6 py-4 border-t border-gray-900">
+          <div className="flex-shrink-0 px-6 py-4 border-t border-gray-800">
             {isEditing ? (
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
                   <Button onClick={handleSaveChanges} className="w-full bg-green-600 hover:bg-green-700 h-10 text-base font-bold">
                     <Save className="h-5 w-5 mr-2" /> Guardar Cambios
                   </Button>
-                  <Button onClick={() => { setIsEditing(false); setEditData(card); }} variant="secondary" className="w-full h-10 text-base font-bold bg-gray-900 text-white hover:bg-gray-800 border-gray-800">
+                  <Button onClick={() => { setIsEditing(false); setEditData(card); setIsCustomSet(false); setCustomSetInputValue(''); }} variant="secondary" className="w-full h-10 text-base font-bold bg-gray-800 text-gray-200 hover:bg-gray-700 border-gray-700">
                     <XCircle className="h-5 w-5 mr-2" /> Cancelar
                   </Button>
                 </div>
@@ -324,7 +361,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                 <div className="flex justify-between items-end mb-4">
                   <div>
                     <p className="text-[10px] text-gray-400 mb-0.5 font-bold uppercase tracking-wider">Precio Unitario</p>
-                    <p className="text-lg font-bold text-white">{formatCLP(editData.price)}</p>
+                    <p className="text-lg font-bold text-gray-100">{formatCLP(editData.price)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] text-gray-400 mb-0.5 font-bold uppercase tracking-wider">Total</p>
@@ -337,10 +374,10 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                 <div className="flex flex-col gap-3">
                   {onAddToCart && (
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center bg-gray-950 border border-gray-800 rounded-xl shadow-sm h-12">
-                        <button onClick={handleDecrement} className="px-3 h-full hover:bg-gray-900 text-gray-400 rounded-l-xl disabled:opacity-50 transition-colors" disabled={quantity <= 1}><Minus className="h-4 w-4" /></button>
-                        <span className="w-10 text-center font-bold text-lg text-white">{quantity}</span>
-                        <button onClick={handleIncrement} className="px-3 h-full hover:bg-gray-900 text-gray-400 rounded-r-xl transition-colors"><Plus className="h-4 w-4" /></button>
+                      <div className="flex items-center bg-gray-800 border border-gray-700 rounded-xl shadow-sm h-12">
+                        <button onClick={handleDecrement} className="px-3 h-full hover:bg-gray-700 text-gray-400 rounded-l-xl disabled:opacity-50 transition-colors" disabled={quantity <= 1}><Minus className="h-4 w-4" /></button>
+                        <span className="w-10 text-center font-bold text-lg text-gray-200">{quantity}</span>
+                        <button onClick={handleIncrement} className="px-3 h-full hover:bg-gray-700 text-gray-400 rounded-r-xl transition-colors"><Plus className="h-4 w-4" /></button>
                       </div>
                       <Button onClick={() => { onAddToCart(card, quantity); onClose(); }} className="flex-1 h-12 text-lg font-bold shadow-md hover:shadow-lg transition-all rounded-xl">
                         <ShoppingCart className="h-5 w-5 mr-2" /> Comprar
