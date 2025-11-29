@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Card } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { formatCLP } from '../../utils/format';
+import { RARITY_COLORS } from '../../data/constants';
 
 interface CardItemProps {
   card: Card;
@@ -15,36 +17,16 @@ interface CardItemProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   collectionQuantity?: number;
-  showPrice?: boolean; // NUEVA PROP: Controla visibilidad del precio
+  showPrice?: boolean; 
 }
 
 export const CardItem: React.FC<CardItemProps> = ({
-  card,
-  onClick,
-  onAddToCart,
-  onAddToCollection,
-  onRemove,
-  showFavorite,
-  isFavorite,
-  onToggleFavorite,
-  collectionQuantity,
-  showPrice = true // Por defecto se muestra
+  card, onClick, onAddToCart, onAddToCollection, onRemove,
+  showFavorite, isFavorite, onToggleFavorite, collectionQuantity, showPrice = true
 }) => {
-  const rarityColors = {
-    Common: 'default',
-    Uncommon: 'secondary',
-    Rare: 'warning',
-    Epic: 'error',
-    Legendary: 'success'
-  } as const;
-
   const handleAction = (e: React.MouseEvent, action?: () => void) => {
     e.stopPropagation();
     action?.();
-  };
-
-  const formatCLP = (price: number) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
   };
 
   return (
@@ -56,7 +38,6 @@ export const CardItem: React.FC<CardItemProps> = ({
       className="group bg-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-800 flex flex-col h-full relative"
       onClick={onClick}
     >
-      {/* 1. IMAGEN */}
       <div className="relative w-full aspect-[63/88] bg-gray-800 overflow-hidden">
         <img
           src={card.image}
@@ -68,7 +49,7 @@ export const CardItem: React.FC<CardItemProps> = ({
 
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
           <Badge 
-            variant={rarityColors[card.rarity]} 
+            variant={RARITY_COLORS[card.rarity] || 'default'} 
             className="shadow-lg backdrop-blur-md !bg-gray-900/90 !text-white border !border-white/20 font-bold"
           >
             {card.rarity}
@@ -93,7 +74,6 @@ export const CardItem: React.FC<CardItemProps> = ({
         )}
       </div>
       
-      {/* 2. INFORMACIÓN */}
       <div className="p-4 flex flex-col flex-grow bg-gray-900 relative">
         <div className="mb-2">
           <h3 className="font-bold text-gray-200 text-lg leading-tight truncate group-hover:text-blue-400 transition-colors">
@@ -102,53 +82,27 @@ export const CardItem: React.FC<CardItemProps> = ({
           <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mt-1">{card.set}</p>
         </div>
         
-        {/* ZONA INFERIOR: Precio y Botones */}
         <div className="mt-auto relative h-10 flex items-center">
-          
-          {/* PRECIO (CONDICIONAL) */}
           {showPrice && (
-            <span 
-              className="text-lg font-extrabold text-gray-200 tracking-tight truncate block w-full pr-2" 
-              title={formatCLP(card.price)}
-            >
+            <span className="text-lg font-extrabold text-gray-200 tracking-tight truncate block w-full pr-2" title={formatCLP(card.price)}>
               {formatCLP(card.price)}
             </span>
           )}
           
-          {/* BOTONES */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-2 z-20">
             <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
               {onRemove && (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={(e) => handleAction(e, onRemove)}
-                  className="h-9 w-9 p-0 rounded-lg shadow-sm"
-                  title="Eliminar"
-                >
+                <Button size="sm" variant="destructive" onClick={(e) => handleAction(e, onRemove)} className="h-9 w-9 p-0 rounded-lg shadow-sm" title="Eliminar">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
-              
               {onAddToCart && (
-                <Button
-                  size="sm"
-                  onClick={(e) => handleAction(e, () => onAddToCart(card))}
-                  className="h-9 w-9 p-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/50 shadow-md border-transparent"
-                  title="Añadir al carrito"
-                >
+                <Button size="sm" onClick={(e) => handleAction(e, () => onAddToCart(card))} className="h-9 w-9 p-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/50 shadow-md border-transparent" title="Añadir al carrito">
                   <ShoppingCart className="h-4 w-4" />
                 </Button>
               )}
-              
               {onAddToCollection && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={(e) => handleAction(e, () => onAddToCollection(card))}
-                  className="h-9 w-9 p-0 rounded-lg bg-purple-900/50 text-purple-300 border border-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-500 shadow-sm transition-all"
-                  title="Coleccionar"
-                >
+                <Button size="sm" variant="secondary" onClick={(e) => handleAction(e, () => onAddToCollection(card))} className="h-9 w-9 p-0 rounded-lg bg-purple-900/50 text-purple-300 border border-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-500 shadow-sm transition-all" title="Coleccionar">
                   <Plus className="h-4 w-4" />
                 </Button>
               )}

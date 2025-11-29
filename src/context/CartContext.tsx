@@ -1,9 +1,10 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Card } from '../types';
+import { CartItem, Card, CardSource } from '../types';
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (card: Card, quantity?: number) => void; // Actualizado para aceptar cantidad
+  // Actualizado para aceptar source
+  addToCart: (card: Card, quantity?: number, source?: CardSource) => void; 
   removeFromCart: (cardId: string) => void;
   updateQuantity: (cardId: string, quantity: number) => void;
   clearCart: () => void;
@@ -30,18 +31,20 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  // Actualizado: Ahora usa la cantidad que le pasemos (por defecto 1)
-  const addToCart = (card: Card, quantity: number = 1) => {
+  // addToCart ahora considera el 'source' para diferenciar ítems
+  const addToCart = (card: Card, quantity: number = 1, source: CardSource = 'catalog') => {
     setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.card.id === card.id);
+      // Buscamos si ya existe la carta con el MISMO origen
+      const existingItem = prevItems.find(item => item.card.id === card.id && item.source === source);
+      
       if (existingItem) {
         return prevItems.map(item =>
-          item.card.id === card.id
+          (item.card.id === card.id && item.source === source)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prevItems, { card, quantity }];
+      return [...prevItems, { card, quantity, source }];
     });
   };
 

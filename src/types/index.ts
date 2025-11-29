@@ -11,7 +11,7 @@ export interface Card {
   manaCoat: number;
   attack?: number;
   defense?: number;
-  condition?: 'Mint' | 'Near Mint' | 'Lightly Played' | 'Moderately Played' | 'Heavily Played'; // Nuevo campo opcional
+  condition?: 'Mint' | 'Near Mint' | 'Lightly Played' | 'Moderately Played' | 'Heavily Played';
 }
 
 export interface User {
@@ -22,9 +22,13 @@ export interface User {
   isOnline: boolean;
 }
 
+// NUEVO TIPO: Origen de la carta
+export type CardSource = 'catalog' | 'marketplace' | 'custom';
+
 export interface CartItem {
   card: Card;
   quantity: number;
+  source: CardSource; // NUEVO
 }
 
 export interface MarketplaceListing {
@@ -49,4 +53,6 @@ export interface CollectionCard extends Card {
   isFavorite: boolean;
   addedAt: string;
   quantity: number;
+  source: CardSource; // NUEVO
+  originalId?: string; // NUEVO (ID original del catálogo para sincronizar precios)
 }

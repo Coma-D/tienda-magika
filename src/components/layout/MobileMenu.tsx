@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { NAV_ITEMS } from '../../data/constants'; // Importar constantes
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -9,21 +9,10 @@ interface MobileMenuProps {
   onNavigate: (view: string) => void;
 }
 
-export const MobileMenu: React.FC<MobileMenuProps> = ({
-  isOpen,
-  onClose,
-  currentView,
-  onNavigate
-}) => {
-  const { isAuthenticated } = useAuth();
-
-  const navigation = [
-    { id: 'catalog', label: 'Catálogo', show: isAuthenticated },
-    { id: 'collection', label: 'Mi Colección', show: isAuthenticated },
-    { id: 'marketplace', label: 'Marketplace', show: isAuthenticated },
-    { id: 'community', label: 'Comunidad', show: isAuthenticated },
-    { id: 'support', label: 'Soporte', show: isAuthenticated },
-  ];
+export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, currentView, onNavigate }) => {
+  // Ya no necesitamos useAuth aquí porque el menú solo se muestra si estás logueado en la App
+  // O si necesitas filtrar, la lógica de App.tsx controla el renderizado general.
+  // Pero asumiendo que este componente solo se monta si hay usuario:
 
   const handleNavigate = (view: string) => {
     onNavigate(view);
@@ -38,15 +27,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
       <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl">
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Menú</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
         <nav className="p-4 space-y-2">
-          {navigation.filter(item => item.show).map((item) => (
+          {/* Renderizado dinámico */}
+          {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavigate(item.id)}

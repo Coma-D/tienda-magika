@@ -63,13 +63,11 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   
-  // ESTADO DEL CATÁLOGO
   const [catalogCards, setCatalogCards] = useState<Card[]>(() => {
     const saved = localStorage.getItem('catalogCards');
     return saved ? JSON.parse(saved) : mockCards;
   });
 
-  // ESTADO DEL MARKETPLACE
   const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>(() => {
     const saved = localStorage.getItem('marketplaceListings');
     return saved ? JSON.parse(saved) : mockListings;
@@ -89,9 +87,8 @@ function App() {
   const [selectedColor, setSelectedColor] = useState('Todos');
   const [selectedType, setSelectedType] = useState('Todos');
   const [selectedSet, setSelectedSet] = useState('Todos');
-  const [selectedCondition, setSelectedCondition] = useState('Todas'); 
+  const [selectedCondition, setSelectedCondition] = useState('Todas');
 
-  // Persistencia
   useEffect(() => {
     localStorage.setItem('catalogCards', JSON.stringify(catalogCards));
   }, [catalogCards]);
@@ -110,6 +107,12 @@ function App() {
     }
   }, [currentView, isAuthenticated]);
 
+  useEffect(() => {
+    if (isAuthenticated && catalogCards.length > 0) {
+      collection.syncCollectionWithCatalog(catalogCards);
+    }
+  }, [catalogCards, isAuthenticated]);
+
   const handleNavigate = (view: string) => {
     setCurrentView(view as View);
     setIsMobileMenuOpen(false);
@@ -120,15 +123,15 @@ function App() {
   };
 
   const handleAddToCart = (card: Card) => {
-    addToCart(card);
+    addToCart(card, 1, 'catalog');
   };
 
   const handleAddToCollection = (card: Card) => {
-    collection.addToCollection(card);
+    collection.addToCollection(card, 'catalog');
   };
 
   const handleAddNewCard = (newCard: Card) => {
-    const cardWithCondition = { ...newCard, condition: 'Mint' as const };
+    const cardWithCondition = { ...newCard, condition: newCard.condition || 'Mint' };
     setCatalogCards(prev => [cardWithCondition, ...prev]);
   };
 
@@ -144,7 +147,7 @@ function App() {
   const handleDeleteCardFromCatalog = (cardId: string) => {
     openConfirmation(
       'Eliminar carta',
-      '¿Estás seguro de que quieres eliminar esta carta del catálogo permanentemente? Esta acción no se puede deshacer.',
+      '¿Estás seguro de que quieres eliminar esta carta del catálogo permanentemente?',
       () => {
         setCatalogCards(prev => prev.filter(c => c.id !== cardId));
         setSelectedCard(null);
@@ -161,50 +164,36 @@ function App() {
   const handleDeleteSet = (setToDelete: string) => {
     openConfirmation(
       'Eliminar edición',
-      `¿Estás seguro de eliminar la edición "${setToDelete}"? Las cartas asociadas no se borrarán, pero la categoría desaparecerá de la lista.`,
+      `¿Estás seguro de eliminar la edición "${setToDelete}"?`,
       () => {
         setAvailableSets(prev => prev.filter(s => s !== setToDelete));
       }
     );
   };
 
-  // LÓGICA DE COMPRA EXITOSA (Checkout)
   const handleCheckoutSuccess = (purchasedItems: CartItem[]) => {
     if (purchasedItems.length === 0) {
       setCurrentView('catalog');
       return;
     }
-
-    // 1. Agregar cartas a la colección del usuario comprador
-    // Esto funciona tanto para cartas de catálogo como de marketplace
     purchasedItems.forEach(cartItem => {
-      // Repetimos la adición según la cantidad comprada
       for (let i = 0; i < cartItem.quantity; i++) {
-        collection.addToCollection(cartItem.card);
+        collection.addToCollection(cartItem.card, cartItem.source);
       }
     });
-
-    // 2. Lógica específica del Marketplace (Eliminar listings y notificar)
     const boughtListingIds: string[] = [];
-
     const remainingListings = marketplaceListings.filter(listing => {
       const wasBought = purchasedItems.some(item => item.card.id === listing.card.id);
-      
       if (wasBought) {
-        addNotification(
-          listing.seller.id, 
-          `¡Tu carta "${listing.card.name}" ha sido vendida por $${listing.price}!`
-        );
+        addNotification(listing.seller.id, `¡Tu carta "${listing.card.name}" ha sido vendida!`);
         boughtListingIds.push(listing.id);
         return false; 
       }
       return true; 
     });
-
     if (boughtListingIds.length > 0) {
       setMarketplaceListings(remainingListings);
     }
-    
     setCurrentView('catalog');
   };
 
@@ -214,7 +203,6 @@ function App() {
     const matchesColor = selectedColor === 'Todos' || card.color === selectedColor;
     const matchesType = selectedType === 'Todos' || card.type === selectedType;
     const matchesSet = selectedSet === 'Todos' || card.set === selectedSet;
-
     return matchesSearch && matchesRarity && matchesColor && matchesType && matchesSet;
   });
 
@@ -244,7 +232,7 @@ function App() {
             <div className="relative rounded-2xl bg-gradient-to-r from-gray-900 to-black p-8 mb-10 text-gray-100 shadow-2xl overflow-hidden border border-gray-800">
               <div className="relative z-10">
                 <h1 className="text-4xl font-extrabold mb-4 tracking-tight text-white">Explora el Multiverso</h1>
-                <p className="text-gray-400 text-lg">Encuentra las cartas más raras, completa tu colección y domina el juego con nuestra selección premium.</p>
+                <p className="text-gray-400 text-lg">Encuentra las cartas más raras.</p>
               </div>
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             </div>
@@ -264,37 +252,19 @@ function App() {
             </div>
 
             <CardDetail
-              card={selectedCard}
-              isOpen={!!selectedCard}
-              onClose={() => setSelectedCard(null)}
-              onAddToCart={handleAddToCart}
-              onAddToCollection={handleAddToCollection}
-              onEditCard={handleUpdateCard}
-              availableSets={availableSets}
-              onAddSet={handleAddSet}
-              onDeleteSet={handleDeleteSet}
-              onDeleteCard={handleDeleteCardFromCatalog}
+              card={selectedCard} isOpen={!!selectedCard} onClose={() => setSelectedCard(null)}
+              onAddToCart={handleAddToCart} onAddToCollection={handleAddToCollection}
+              onEditCard={handleUpdateCard} onDeleteCard={handleDeleteCardFromCatalog}
+              availableSets={availableSets} onAddSet={handleAddSet} onDeleteSet={handleDeleteSet}
             />
 
-            <AddCardForm 
-              isOpen={isAddCardModalOpen}
-              onClose={() => setIsAddCardModalOpen(false)}
-              onAdd={handleAddNewCard}
-              availableSets={availableSets}
-              onAddSet={handleAddSet}
-              onDeleteSet={handleDeleteSet}
-            />
+            <AddCardForm isOpen={isAddCardModalOpen} onClose={() => setIsAddCardModalOpen(false)} onAdd={handleAddNewCard} availableSets={availableSets} onAddSet={handleAddSet} onDeleteSet={handleDeleteSet} />
           </div>
         )}
 
-        {currentView === 'collection' && <Collection />}
+        {currentView === 'collection' && <Collection catalogSets={availableSets} collection={collection} />}
         
-        {currentView === 'marketplace' && (
-          <Marketplace 
-            listings={marketplaceListings}
-            onAddListing={handleAddListing}
-          />
-        )}
+        {currentView === 'marketplace' && <Marketplace listings={marketplaceListings} onAddListing={handleAddListing} availableSets={availableSets} />}
         
         {currentView === 'community' && <Community />}
         {currentView === 'support' && <Support />}
@@ -302,13 +272,7 @@ function App() {
         {currentView === 'checkout' && <Checkout onBack={() => setCurrentView('cart')} onSuccess={handleCheckoutSuccess} />}
       </main>
 
-      <ConfirmationModal 
-        isOpen={confirmModal.isOpen}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        onConfirm={confirmModal.onConfirm}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-      />
+      <ConfirmationModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} onConfirm={confirmModal.onConfirm} onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} />
     </div>
   );
 }
