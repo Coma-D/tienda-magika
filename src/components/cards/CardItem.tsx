@@ -15,6 +15,7 @@ interface CardItemProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   collectionQuantity?: number;
+  showPrice?: boolean; // NUEVA PROP: Controla visibilidad del precio
 }
 
 export const CardItem: React.FC<CardItemProps> = ({
@@ -26,7 +27,8 @@ export const CardItem: React.FC<CardItemProps> = ({
   showFavorite,
   isFavorite,
   onToggleFavorite,
-  collectionQuantity
+  collectionQuantity,
+  showPrice = true // Por defecto se muestra
 }) => {
   const rarityColors = {
     Common: 'default',
@@ -65,9 +67,13 @@ export const CardItem: React.FC<CardItemProps> = ({
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
-          <Badge variant={rarityColors[card.rarity]} className="shadow-lg backdrop-blur-md bg-white/90 border border-white/20">
+          <Badge 
+            variant={rarityColors[card.rarity]} 
+            className="shadow-lg backdrop-blur-md !bg-gray-900/90 !text-white border !border-white/20 font-bold"
+          >
             {card.rarity}
           </Badge>
+          
           {collectionQuantity && collectionQuantity > 1 && (
             <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg border border-white">
               x{collectionQuantity}
@@ -97,15 +103,17 @@ export const CardItem: React.FC<CardItemProps> = ({
         </div>
         
         {/* ZONA INFERIOR: Precio y Botones */}
-        <div className="mt-auto pt-3 border-t border-gray-800 relative h-10 flex items-center">
+        <div className="mt-auto relative h-10 flex items-center">
           
-          {/* PRECIO */}
-          <span 
-            className="text-lg font-extrabold text-gray-200 tracking-tight truncate block w-full pr-2" 
-            title={formatCLP(card.price)}
-          >
-            {formatCLP(card.price)}
-          </span>
+          {/* PRECIO (CONDICIONAL) */}
+          {showPrice && (
+            <span 
+              className="text-lg font-extrabold text-gray-200 tracking-tight truncate block w-full pr-2" 
+              title={formatCLP(card.price)}
+            >
+              {formatCLP(card.price)}
+            </span>
+          )}
           
           {/* BOTONES */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-2 z-20">
@@ -138,7 +146,7 @@ export const CardItem: React.FC<CardItemProps> = ({
                   size="sm"
                   variant="secondary"
                   onClick={(e) => handleAction(e, () => onAddToCollection(card))}
-                  className="h-9 w-9 p-0 rounded-lg bg-purple-900/50 text-purple-300 hover:bg-purple-800/50 border border-purple-700"
+                  className="h-9 w-9 p-0 rounded-lg bg-purple-900/50 text-purple-300 border border-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-500 shadow-sm transition-all"
                   title="Coleccionar"
                 >
                   <Plus className="h-4 w-4" />

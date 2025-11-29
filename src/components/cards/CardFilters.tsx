@@ -14,6 +14,8 @@ interface CardFiltersProps {
   onTypeChange: (value: string) => void;
   selectedSet: string;
   onSetChange: (value: string) => void;
+  selectedCondition?: string;
+  onConditionChange?: (value: string) => void;
   onAddCard?: () => void;
   availableSets?: string[];
 }
@@ -29,6 +31,8 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
   onTypeChange,
   selectedSet,
   onSetChange,
+  selectedCondition,
+  onConditionChange,
   onAddCard,
   availableSets = []
 }) => {
@@ -59,15 +63,30 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
     { value: 'Land', label: 'Tierra' }
   ];
 
+  const conditions = [
+    { value: 'Todas', label: 'Todas las Condiciones' },
+    { value: 'Mint', label: 'Nueva' },
+    { value: 'Near Mint', label: 'Casi Nueva' },
+    { value: 'Lightly Played', label: 'Ligeramente Jugada' },
+    { value: 'Moderately Played', label: 'Moderadamente Jugada' },
+    { value: 'Heavily Played', label: 'Muy Jugada' }
+  ];
+
   const setsToUse = availableSets.length > 0 ? availableSets : ['Colección Básica 2024'];
 
   const darkInputClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500 placeholder-gray-500";
   const darkSelectClasses = "w-full px-3 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-200";
 
+  // Lógica dinámica para el grid: 6 columnas si hay condición, 5 si no la hay.
+  const hasConditionFilter = selectedCondition && onConditionChange;
+  const gridColsClass = hasConditionFilter ? "lg:grid-cols-6" : "lg:grid-cols-5";
+
   return (
     <div className="bg-gray-900 rounded-xl shadow-md border border-gray-800 p-6 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridColsClass} gap-4`}>
+        
+        {/* El buscador ocupa su espacio natural */}
+        <div className="w-full">
           <Input
             placeholder="Buscar por nombre..."
             value={searchTerm}
@@ -111,6 +130,21 @@ export const CardFilters: React.FC<CardFiltersProps> = ({
             ))}
           </select>
         </div>
+
+        {/* Renderizado condicional del filtro de Condición */}
+        {hasConditionFilter && (
+          <div>
+            <select
+              value={selectedCondition}
+              onChange={(e) => onConditionChange(e.target.value)}
+              className={darkSelectClasses}
+            >
+              {conditions.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <select

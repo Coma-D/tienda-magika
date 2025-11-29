@@ -3,14 +3,17 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
-import { CartProvider } from './context/CartContext'; // Importar CartProvider
+import { CartProvider } from './context/CartContext';
+import { NotificationProvider } from './context/NotificationContext'; // IMPORTAR
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <CartProvider> {/* Envolver la app AQUÍ */}
-        <App />
-      </CartProvider>
+      <NotificationProvider> {/* AÑADIR AQUÍ */}
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </NotificationProvider>
     </AuthProvider>
   </StrictMode>
 );

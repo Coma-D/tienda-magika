@@ -7,13 +7,15 @@ interface CardGridProps {
   onCardClick: (card: Card) => void;
   onAddToCart?: (card: Card) => void;
   onAddToCollection?: (card: Card) => void;
+  showPrice?: boolean; // Nueva prop para controlar el precio en todo el grid
 }
 
 export const CardGrid: React.FC<CardGridProps> = ({
   cards,
   onCardClick,
   onAddToCart,
-  onAddToCollection
+  onAddToCollection,
+  showPrice = true
 }) => {
   if (cards.length === 0) {
     return (
@@ -32,6 +34,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
           onClick={() => onCardClick(card)}
           onAddToCart={onAddToCart}
           onAddToCollection={onAddToCollection}
+          showPrice={showPrice} // Pasamos la prop
         />
       ))}
     </div>

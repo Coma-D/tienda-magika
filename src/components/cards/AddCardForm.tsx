@@ -66,6 +66,13 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // --- BLOQUEAR TECLAS EN INPUT NUMÉRICO ---
+  const handlePriceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleSetSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     if (value === 'NEW_CUSTOM_SET') {
@@ -145,7 +152,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
     onClose();
   };
 
-  // Clases de estilo oscuro y elegante
   const darkInputClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500 placeholder-gray-500";
   const darkSelectClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500";
 
@@ -154,7 +160,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
       isOpen={isOpen} 
       onClose={onClose} 
       showCloseButton={false}
-      // Fondo modal gray-900
       className="max-w-[90vw] w-full h-[85vh] overflow-hidden flex flex-col p-0 rounded-3xl shadow-2xl !bg-gray-900 !border !border-gray-800"
     >
       <div className="flex h-full w-full">
@@ -163,7 +168,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
         <div className="relative h-full w-[31.8%] flex-none bg-gray-900 flex items-center justify-center p-0 overflow-hidden rounded-l-3xl group">
           
           {formData.image ? (
-            // Si hay imagen, se muestra
             <>
               <img
                 src={formData.image}
@@ -179,7 +183,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
               </div>
             </>
           ) : (
-            // Si NO hay imagen, se muestra el placeholder de subida
             <div 
               className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer bg-gray-800/50 border-2 border-dashed border-gray-700 m-4 rounded-2xl hover:border-blue-500 hover:bg-gray-800 transition-all"
               onClick={() => fileInputRef.current?.click()}
@@ -288,7 +291,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
                   
                   {isCustomSet && (
                     <>
-                      {/* Botón de Confirmar Nueva Edición */}
                       <button 
                         onClick={handleSaveCustomSet}
                         disabled={!customSetInputValue.trim()}
@@ -297,7 +299,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
                       >
                         <Check className="h-5 w-5" />
                       </button>
-                      {/* Botón de Cancelar */}
                       <button 
                         onClick={handleCancelCustomSet} 
                         className="p-2 text-gray-400 border border-gray-700 rounded hover:bg-gray-800"
@@ -318,6 +319,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
                     value={formData.manaCoat} 
                     onChange={(e) => handleChange('manaCoat', e.target.value)}
                     className={`h-9 text-sm w-20 ${darkInputClasses}`}
+                    onKeyDown={handlePriceKeyDown} // APLICADO AQUÍ
                   />
                   <span className="text-gray-400 text-sm">Mana</span>
                 </div>
@@ -331,6 +333,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
                   onChange={(e) => handleChange('price', e.target.value)}
                   placeholder="0"
                   className={`h-9 text-sm ${darkInputClasses}`}
+                  onKeyDown={handlePriceKeyDown} // APLICADO AQUÍ
                 />
               </div>
             </div>
@@ -347,7 +350,6 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({
               </div>
             </div>
 
-            {/* Botón de Añadir azul para combinar */}
             <Button 
               onClick={handleSubmit} 
               loading={loading}

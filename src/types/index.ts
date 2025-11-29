@@ -11,6 +11,7 @@ export interface Card {
   manaCoat: number;
   attack?: number;
   defense?: number;
+  condition?: 'Mint' | 'Near Mint' | 'Lightly Played' | 'Moderately Played' | 'Heavily Played'; // Nuevo campo opcional
 }
 
 export interface User {
@@ -47,5 +48,5 @@ export interface ChatMessage {
 export interface CollectionCard extends Card {
   isFavorite: boolean;
   addedAt: string;
-  quantity: number; // Nuevo campo
+  quantity: number;
 }

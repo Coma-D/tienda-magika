@@ -85,6 +85,13 @@ export const CardDetail: React.FC<CardDetailProps> = ({
     setEditData(prev => prev ? ({ ...prev, [field]: value }) : null);
   };
 
+  // --- BLOQUEAR TECLAS EN INPUT NUMÉRICO ---
+  const handlePriceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleSetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     if (value === 'NEW_CUSTOM_SET') {
@@ -129,7 +136,6 @@ export const CardDetail: React.FC<CardDetailProps> = ({
     }
   };
 
-  // Ajuste de colores: inputs bg-gray-800, texto gray-200
   const darkInputClasses = "bg-gray-800 border-gray-700 text-gray-200 focus:border-blue-500 placeholder-gray-500";
 
   return (
@@ -137,7 +143,6 @@ export const CardDetail: React.FC<CardDetailProps> = ({
       isOpen={isOpen} 
       onClose={onClose} 
       showCloseButton={false}
-      // Fondo modal gray-900 para suavizar el negro puro
       className="max-w-[90vw] w-full h-[85vh] overflow-hidden flex flex-col p-0 rounded-3xl shadow-2xl !bg-gray-900 !border !border-gray-800"
     >
       <div className="flex h-full w-full">
@@ -174,7 +179,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
           </button>
 
           {/* CABECERA */}
-          <div className="flex-shrink-0 px-6 py-4 border-b border-gray-800 pr-14">
+          <div className="flex-shrink-0 px-6 py-4 pr-14">
             <div className="flex items-center gap-2 mb-2">
               {isEditing ? (
                 <Input 
@@ -312,6 +317,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                       value={editData.manaCoat} 
                       onChange={(e) => handleEditChange('manaCoat', parseInt(e.target.value))}
                       className={`h-9 text-sm w-20 ${darkInputClasses}`}
+                      onKeyDown={handlePriceKeyDown} // APLICADO AQUÍ
                     />
                     <span className="text-gray-400 text-sm">Mana</span>
                   </div>
@@ -328,6 +334,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                     value={editData.price} 
                     onChange={(e) => handleEditChange('price', parseInt(e.target.value))}
                     className={`h-9 text-sm ${darkInputClasses}`}
+                    onKeyDown={handlePriceKeyDown} // APLICADO AQUÍ
                   />
                 </div>
               )}
@@ -339,10 +346,17 @@ export const CardDetail: React.FC<CardDetailProps> = ({
             {isEditing ? (
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
-                  <Button onClick={handleSaveChanges} className="w-full bg-green-600 hover:bg-green-700 h-10 text-base font-bold">
+                  <Button 
+                    onClick={handleSaveChanges} 
+                    className="w-full bg-blue-600 hover:bg-blue-700 h-10 text-base font-bold shadow-lg shadow-blue-900/20"
+                  >
                     <Save className="h-5 w-5 mr-2" /> Guardar Cambios
                   </Button>
-                  <Button onClick={() => { setIsEditing(false); setEditData(card); setIsCustomSet(false); setCustomSetInputValue(''); }} variant="secondary" className="w-full h-10 text-base font-bold bg-gray-800 text-gray-200 hover:bg-gray-700 border-gray-700">
+                  <Button 
+                    onClick={() => { setIsEditing(false); setEditData(card); setIsCustomSet(false); setCustomSetInputValue(''); }} 
+                    variant="secondary" 
+                    className="w-full h-10 text-base font-bold bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 hover:text-white"
+                  >
                     <XCircle className="h-5 w-5 mr-2" /> Cancelar
                   </Button>
                 </div>
@@ -350,7 +364,7 @@ export const CardDetail: React.FC<CardDetailProps> = ({
                   <Button 
                     onClick={() => onDeleteCard(card.id)} 
                     variant="destructive" 
-                    className="w-full h-10 text-sm mt-2 font-medium"
+                    className="w-full h-10 text-sm mt-2 font-medium border border-red-900/30 hover:bg-red-900/50 hover:text-red-200 transition-all"
                   >
                     <Trash2 className="h-4 w-4 mr-2" /> Eliminar Carta del Catálogo
                   </Button>

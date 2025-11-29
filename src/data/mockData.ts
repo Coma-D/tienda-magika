@@ -14,7 +14,8 @@ export const mockCards: Card[] = [
     set: 'Colección Básica 2024',
     description: 'Hace 3 puntos de daño a cualquier objetivo.',
     price: 5990,
-    manaCoat: 1
+    manaCoat: 1,
+    condition: 'Mint' // Añadido
   },
   {
     id: '2',
@@ -26,7 +27,8 @@ export const mockCards: Card[] = [
     set: 'Alpha',
     description: 'Agrega tres maná de cualquier un color a tu reserva de maná.',
     price: 250000000000000,
-    manaCoat: 0
+    manaCoat: 0,
+    condition: 'Mint' // Añadido
   },
   {
     id: '3',
@@ -40,7 +42,8 @@ export const mockCards: Card[] = [
     price: 12990,
     manaCoat: 5,
     attack: 4,
-    defense: 4
+    defense: 4,
+    condition: 'Mint' // Añadido
   },
   {
     id: '4',
@@ -52,7 +55,8 @@ export const mockCards: Card[] = [
     set: 'Colección Básica 2024',
     description: 'Contrarresta el hechizo objetivo.',
     price: 8500,
-    manaCoat: 2
+    manaCoat: 2,
+    condition: 'Mint' // Añadido
   },
   {
     id: '5',
@@ -64,7 +68,8 @@ export const mockCards: Card[] = [
     set: 'Colección Básica 2024',
     description: 'Tierra básica - Bosque. Gira para agregar un maná verde.',
     price: 250,
-    manaCoat: 0
+    manaCoat: 0,
+    condition: 'Mint' // Añadido
   },
   {
     id: '6',
@@ -76,7 +81,8 @@ export const mockCards: Card[] = [
     set: 'Alpha',
     description: 'Agrega tres maná negro.',
     price: 15990,
-    manaCoat: 1
+    manaCoat: 1,
+    condition: 'Mint' // Añadido
   }
 ];
 

@@ -17,9 +17,10 @@ import { Support } from './components/support/Support';
 import { useAuth } from './hooks/useAuth';
 import { useCart } from './hooks/useCart';
 import { useCollection } from './hooks/useCollection';
-import { mockCards } from './data/mockData';
-import { Card } from './types';
+import { mockCards, mockListings } from './data/mockData';
+import { Card, MarketplaceListing, CartItem } from './types';
 import { ConfirmationModal } from './components/ui/ConfirmationModal';
+import { useNotification } from './hooks/useNotification';
 
 type View = 'auth' | 'catalog' | 'collection' | 'marketplace' | 'community' | 'support' | 'cart' | 'checkout';
 type AuthView = 'login' | 'register' | 'forgot-password';
@@ -29,6 +30,7 @@ function App() {
   const { addToCart } = useCart();
   const { user } = useAuth();
   const collection = useCollection(user?.id);
+  const { addNotification } = useNotification();
   
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -61,9 +63,16 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   
+  // ESTADO DEL CATÁLOGO
   const [catalogCards, setCatalogCards] = useState<Card[]>(() => {
     const saved = localStorage.getItem('catalogCards');
     return saved ? JSON.parse(saved) : mockCards;
+  });
+
+  // ESTADO DEL MARKETPLACE
+  const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>(() => {
+    const saved = localStorage.getItem('marketplaceListings');
+    return saved ? JSON.parse(saved) : mockListings;
   });
 
   const [availableSets, setAvailableSets] = useState<string[]>(() => {
@@ -80,10 +89,16 @@ function App() {
   const [selectedColor, setSelectedColor] = useState('Todos');
   const [selectedType, setSelectedType] = useState('Todos');
   const [selectedSet, setSelectedSet] = useState('Todos');
+  const [selectedCondition, setSelectedCondition] = useState('Todas'); 
 
+  // Persistencia
   useEffect(() => {
     localStorage.setItem('catalogCards', JSON.stringify(catalogCards));
   }, [catalogCards]);
+
+  useEffect(() => {
+    localStorage.setItem('marketplaceListings', JSON.stringify(marketplaceListings));
+  }, [marketplaceListings]);
 
   useEffect(() => {
     localStorage.setItem('availableSets', JSON.stringify(availableSets));
@@ -113,7 +128,12 @@ function App() {
   };
 
   const handleAddNewCard = (newCard: Card) => {
-    setCatalogCards(prev => [newCard, ...prev]);
+    const cardWithCondition = { ...newCard, condition: 'Mint' as const };
+    setCatalogCards(prev => [cardWithCondition, ...prev]);
+  };
+
+  const handleAddListing = (newListing: MarketplaceListing) => {
+    setMarketplaceListings(prev => [newListing, ...prev]);
   };
 
   const handleUpdateCard = (updatedCard: Card) => {
@@ -148,6 +168,46 @@ function App() {
     );
   };
 
+  // LÓGICA DE COMPRA EXITOSA (Checkout)
+  const handleCheckoutSuccess = (purchasedItems: CartItem[]) => {
+    if (purchasedItems.length === 0) {
+      setCurrentView('catalog');
+      return;
+    }
+
+    // 1. Agregar cartas a la colección del usuario comprador
+    // Esto funciona tanto para cartas de catálogo como de marketplace
+    purchasedItems.forEach(cartItem => {
+      // Repetimos la adición según la cantidad comprada
+      for (let i = 0; i < cartItem.quantity; i++) {
+        collection.addToCollection(cartItem.card);
+      }
+    });
+
+    // 2. Lógica específica del Marketplace (Eliminar listings y notificar)
+    const boughtListingIds: string[] = [];
+
+    const remainingListings = marketplaceListings.filter(listing => {
+      const wasBought = purchasedItems.some(item => item.card.id === listing.card.id);
+      
+      if (wasBought) {
+        addNotification(
+          listing.seller.id, 
+          `¡Tu carta "${listing.card.name}" ha sido vendida por $${listing.price}!`
+        );
+        boughtListingIds.push(listing.id);
+        return false; 
+      }
+      return true; 
+    });
+
+    if (boughtListingIds.length > 0) {
+      setMarketplaceListings(remainingListings);
+    }
+    
+    setCurrentView('catalog');
+  };
+
   const filteredCards = catalogCards.filter(card => {
     const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRarity = selectedRarity === 'Todas' || card.rarity === selectedRarity;
@@ -174,7 +234,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-200"> {/* TEXTO SUAVE */}
+    <div className="min-h-screen bg-black text-gray-200">
       <Header currentView={currentView} onNavigate={handleNavigate} onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} currentView={currentView} onNavigate={handleNavigate} />
 
@@ -184,7 +244,7 @@ function App() {
             <div className="relative rounded-2xl bg-gradient-to-r from-gray-900 to-black p-8 mb-10 text-gray-100 shadow-2xl overflow-hidden border border-gray-800">
               <div className="relative z-10">
                 <h1 className="text-4xl font-extrabold mb-4 tracking-tight text-white">Explora el Multiverso</h1>
-                <p className="text-gray-400 text-lg max-w-2xl">Encuentra las cartas más raras, completa tu colección y domina el juego con nuestra selección premium.</p>
+                <p className="text-gray-400 text-lg">Encuentra las cartas más raras, completa tu colección y domina el juego con nuestra selección premium.</p>
               </div>
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             </div>
@@ -199,7 +259,6 @@ function App() {
               availableSets={availableSets}
             />
 
-            {/* Contenedor de cartas más claro (900) que el fondo (black) */}
             <div className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6 min-h-[400px]">
               <CardGrid cards={filteredCards} onCardClick={setSelectedCard} onAddToCart={handleAddToCart} onAddToCollection={handleAddToCollection} />
             </div>
@@ -229,11 +288,18 @@ function App() {
         )}
 
         {currentView === 'collection' && <Collection />}
-        {currentView === 'marketplace' && <Marketplace />}
+        
+        {currentView === 'marketplace' && (
+          <Marketplace 
+            listings={marketplaceListings}
+            onAddListing={handleAddListing}
+          />
+        )}
+        
         {currentView === 'community' && <Community />}
         {currentView === 'support' && <Support />}
         {currentView === 'cart' && <Cart onCheckout={() => setCurrentView('checkout')} />}
-        {currentView === 'checkout' && <Checkout onBack={() => setCurrentView('cart')} onSuccess={() => setCurrentView('catalog')} />}
+        {currentView === 'checkout' && <Checkout onBack={() => setCurrentView('cart')} onSuccess={handleCheckoutSuccess} />}
       </main>
 
       <ConfirmationModal 

@@ -3,10 +3,11 @@ import { CreditCard, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { useCart } from '../../hooks/useCart';
+import { CartItem } from '../../types';
 
 interface CheckoutProps {
   onBack: () => void;
-  onSuccess: () => void;
+  onSuccess: (purchasedItems: CartItem[]) => void;
 }
 
 export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccess }) => {
@@ -28,12 +29,15 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate payment processing
     await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const purchasedItems = [...items];
 
     clearCart();
     setStep('success');
     setLoading(false);
+    
+    onSuccess(purchasedItems);
   };
 
   const handleChange = (field: string, value: string) => {
@@ -49,7 +53,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccess }) => {
           <p className="text-gray-600 mb-6">
             Tu pedido ha sido procesado correctamente. Recibirás un correo de confirmación con los detalles del envío.
           </p>
-          <Button onClick={onSuccess} className="w-full">
+          <Button onClick={() => onSuccess([])} className="w-full">
             Continuar comprando
           </Button>
         </div>

@@ -1,8 +1,8 @@
-import React from 'react';
-import { ShoppingCart, User, Search, Menu, LogOut } from 'lucide-react';
-import { Button } from '../ui/Button';
+import React, { useState } from 'react';
+import { ShoppingCart, User, Menu, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
+import { useNotification } from '../../hooks/useNotification'; // Importar hook
 
 interface HeaderProps {
   currentView: string;
@@ -17,6 +17,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const { items } = useCart();
+  const { notifications, unreadCount, markAsRead } = useNotification();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -34,13 +36,14 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   if (!isAuthenticated) {
+    // ... (Código del header no autenticado igual que antes)
     return (
       <header className="bg-gray-900/90 shadow-md border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                CardTrader
+                Tienda Magika
               </h1>
             </div>
           </div>
@@ -64,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent cursor-pointer"
               onClick={() => onNavigate('catalog')}
             >
-              CardTrader
+              Tienda Magika
             </h1>
           </div>
 
@@ -85,6 +88,48 @@ export const Header: React.FC<HeaderProps> = ({
           </nav>
 
           <div className="flex items-center space-x-4">
+            
+            {/* --- BOTÓN DE NOTIFICACIONES (NUEVO) --- */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-300"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1.5 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-gray-900"></span>
+                )}
+              </button>
+
+              {/* Dropdown de Notificaciones */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="p-3 border-b border-gray-800 bg-gray-800/50">
+                    <h3 className="text-sm font-bold text-gray-200">Notificaciones</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-gray-500 text-sm">No tienes notificaciones</div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div 
+                          key={notif.id} 
+                          className={`p-3 border-b border-gray-800 hover:bg-gray-800 transition-colors cursor-pointer ${!notif.read ? 'bg-blue-900/10' : ''}`}
+                          onClick={() => markAsRead(notif.id)}
+                        >
+                          <p className={`text-sm ${!notif.read ? 'text-white font-semibold' : 'text-gray-400'}`}>
+                            {notif.message}
+                          </p>
+                          <span className="text-xs text-gray-600 mt-1 block">{notif.date}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* BOTÓN CARRITO */}
             <button
               onClick={() => onNavigate('cart')}
               className="relative p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-300"

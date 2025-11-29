@@ -1,32 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { Star, TrendingUp, Package } from 'lucide-react';
+import React, { useState } from 'react';
+import { Star, TrendingUp, Package, Plus } from 'lucide-react';
 import { Card } from '../../types';
 import { CardItem } from '../cards/CardItem';
 import { CardDetail } from '../cards/CardDetail';
 import { CardFilters } from '../cards/CardFilters';
+import { AddCardForm } from '../cards/AddCardForm'; // Importamos el formulario
 import { useAuth } from '../../hooks/useAuth';
 import { useCollection } from '../../hooks/useCollection';
-import { mockCards } from '../../data/mockData';
+import { Button } from '../ui/Button';
 
 export const Collection: React.FC = () => {
   const { user } = useAuth();
   const { cards, toggleFavorite, getCollectionStats, addToCollection, removeFromCollection } = useCollection(user?.id);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Estado para modal de añadir
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRarity, setSelectedRarity] = useState('Todas');
   const [selectedColor, setSelectedColor] = useState('Todos');
   const [selectedType, setSelectedType] = useState('Todos');
   const [selectedSet, setSelectedSet] = useState('Todos');
+  const [selectedCondition, setSelectedCondition] = useState('Todas');
 
-  useEffect(() => {
-    if (cards.length === 0 && user) {
-      mockCards.slice(0, 3).forEach(card => {
-        addToCollection(card);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  // Obtener sets disponibles de la colección actual para el filtro
+  const availableSets = Array.from(new Set(cards.map(card => card.set))).sort();
 
   const filteredCards = cards.filter(card => {
     const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -34,50 +31,86 @@ export const Collection: React.FC = () => {
     const matchesColor = selectedColor === 'Todos' || card.color === selectedColor;
     const matchesType = selectedType === 'Todos' || card.type === selectedType;
     const matchesSet = selectedSet === 'Todos' || card.set === selectedSet;
+    const cardCondition = card.condition || 'Mint';
+    const matchesCondition = selectedCondition === 'Todas' || cardCondition === selectedCondition;
 
-    return matchesSearch && matchesRarity && matchesColor && matchesType && matchesSet;
+    return matchesSearch && matchesRarity && matchesColor && matchesType && matchesSet && matchesCondition;
   });
 
   const stats = getCollectionStats();
 
+  // Handler para añadir carta personalizada directamente a la colección
+  const handleAddCustomCard = (newCard: Card) => {
+    // Al añadir a colección personal, podemos asumir que el usuario la tiene
+    addToCollection(newCard);
+    setIsAddModalOpen(false);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Mi Colección</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      {/* Cabecera y Estadísticas */}
+      <div className="mb-10">
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-100 mb-2">Mi Colección</h1>
+            <p className="text-gray-400">Gestiona tu inventario personal de cartas</p>
+          </div>
+          {/* Botón principal de añadir también aquí por usabilidad */}
+          <Button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20"
+          >
+            <Plus className="h-5 w-5 mr-2" /> Añadir Carta Propia
+          </Button>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Cartas</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalCards}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Total Cartas */}
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg relative overflow-hidden group">
+            <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-blue-900/10 to-transparent"></div>
+            <div className="flex items-center relative z-10">
+              <div className="p-3 bg-blue-900/20 rounded-lg mr-4">
+                <Package className="h-8 w-8 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Total Cartas</p>
+                <p className="text-3xl font-extrabold text-white mt-1">{stats.totalCards}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Sets Completos</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completeSets}</p>
+          {/* Sets Completos (o Variedad) */}
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg relative overflow-hidden group">
+            <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-green-900/10 to-transparent"></div>
+            <div className="flex items-center relative z-10">
+              <div className="p-3 bg-green-900/20 rounded-lg mr-4">
+                <TrendingUp className="h-8 w-8 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Sets Activos</p>
+                <p className="text-3xl font-extrabold text-white mt-1">{stats.completeSets}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <Star className="h-8 w-8 text-yellow-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Favoritas</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.favoriteCards}</p>
+          {/* Favoritas */}
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg relative overflow-hidden group">
+            <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-yellow-900/10 to-transparent"></div>
+            <div className="flex items-center relative z-10">
+              <div className="p-3 bg-yellow-900/20 rounded-lg mr-4">
+                <Star className="h-8 w-8 text-yellow-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Favoritas</p>
+                <p className="text-3xl font-extrabold text-white mt-1">{stats.favoriteCards}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Filtros */}
       <CardFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -89,19 +122,43 @@ export const Collection: React.FC = () => {
         onTypeChange={setSelectedType}
         selectedSet={selectedSet}
         onSetChange={setSelectedSet}
+        selectedCondition={selectedCondition}
+        onConditionChange={setSelectedCondition}
+        availableSets={availableSets.length > 0 ? availableSets : undefined}
+        // Pasamos la función onAddCard para que aparezca el botón "+" junto a los filtros
+        onAddCard={() => setIsAddModalOpen(true)}
       />
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      {/* Grid de Cartas */}
+      <div className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6 min-h-[400px]">
         {filteredCards.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Tu colección está vacía</p>
-            <p className="text-gray-400">Agrega cartas desde el catálogo para comenzar</p>
+          <div className="text-center py-20 flex flex-col items-center">
+            <div className="bg-gray-800 p-6 rounded-full mb-6">
+              <Package className="h-16 w-16 text-gray-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-300 mb-2">Tu colección está vacía</h3>
+            <p className="text-gray-500 max-w-md mx-auto mb-8">
+              Aún no has añadido cartas. Puedes añadir tus propias cartas o buscar en el catálogo.
+            </p>
+            <div className="flex gap-4">
+              <Button 
+                onClick={() => window.location.reload()} // Ir a catalogo (o usar navegación real)
+                className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-6 py-3 rounded-lg"
+              >
+                Ir al Catálogo
+              </Button>
+              <Button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg"
+              >
+                <Plus className="h-5 w-5 mr-2" /> Añadir Manualmente
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {filteredCards.map((card) => (
-              <div key={card.id}>
+              <div key={card.id} className="relative">
                 <CardItem
                   card={card}
                   onClick={() => setSelectedCard(card)}
@@ -110,7 +167,8 @@ export const Collection: React.FC = () => {
                   onToggleFavorite={() => toggleFavorite(card.id)}
                   collectionQuantity={card.quantity}
                   onRemove={() => removeFromCollection(card.id)}
-                  onAddToCollection={() => addToCollection(card)} // <--- ESTO ACTIVA EL BOTÓN "+"
+                  onAddToCollection={() => addToCollection(card)}
+                  showPrice={false} // OCULTAR PRECIO EN COLECCIÓN
                 />
               </div>
             ))}
@@ -118,10 +176,22 @@ export const Collection: React.FC = () => {
         )}
       </div>
 
+      {/* Modal Detalle */}
       <CardDetail
         card={selectedCard}
         isOpen={!!selectedCard}
         onClose={() => setSelectedCard(null)}
+        onAddToCollection={addToCollection}
+        // No pasamos onAddToCart aquí porque estamos en la colección, no en compra
+      />
+
+      {/* Modal para añadir carta personalizada */}
+      <AddCardForm 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddCustomCard}
+        // Podemos pasar los sets disponibles para facilitar el autocompletado
+        availableSets={availableSets.length > 0 ? availableSets : ['Colección Básica 2024']}
       />
     </div>
   );
