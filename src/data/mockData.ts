@@ -1,6 +1,5 @@
 import { Card, User, MarketplaceListing, ChatMessage } from '../types';
 
-// Usamos la imagen proporcionada para todas las cartas
 const GLOBAL_IMAGE = '/sp_res5myxp7z.jpg'; 
 
 export const mockCards: Card[] = [
@@ -15,7 +14,7 @@ export const mockCards: Card[] = [
     description: 'Hace 3 puntos de daño a cualquier objetivo.',
     price: 5990,
     manaCoat: 1,
-    condition: 'Mint' // Añadido
+    condition: 'Mint'
   },
   {
     id: '2',
@@ -28,7 +27,7 @@ export const mockCards: Card[] = [
     description: 'Agrega tres maná de cualquier un color a tu reserva de maná.',
     price: 250000000000000,
     manaCoat: 0,
-    condition: 'Mint' // Añadido
+    condition: 'Mint'
   },
   {
     id: '3',
@@ -43,7 +42,7 @@ export const mockCards: Card[] = [
     manaCoat: 5,
     attack: 4,
     defense: 4,
-    condition: 'Mint' // Añadido
+    condition: 'Mint'
   },
   {
     id: '4',
@@ -56,7 +55,7 @@ export const mockCards: Card[] = [
     description: 'Contrarresta el hechizo objetivo.',
     price: 8500,
     manaCoat: 2,
-    condition: 'Mint' // Añadido
+    condition: 'Mint'
   },
   {
     id: '5',
@@ -69,7 +68,7 @@ export const mockCards: Card[] = [
     description: 'Tierra básica - Bosque. Gira para agregar un maná verde.',
     price: 250,
     manaCoat: 0,
-    condition: 'Mint' // Añadido
+    condition: 'Mint'
   },
   {
     id: '6',
@@ -82,7 +81,7 @@ export const mockCards: Card[] = [
     description: 'Agrega tres maná negro.',
     price: 15990,
     manaCoat: 1,
-    condition: 'Mint' // Añadido
+    condition: 'Mint'
   }
 ];
 
@@ -90,6 +89,7 @@ export const mockUsers: User[] = [
   {
     id: '1',
     name: 'Alex Rodriguez',
+    username: 'alexrod', // NUEVO
     email: 'alex@example.com',
     avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
     isOnline: true
@@ -97,6 +97,7 @@ export const mockUsers: User[] = [
   {
     id: '2',
     name: 'Sarah Chen',
+    username: 'sarah_c', // NUEVO
     email: 'sarah@example.com',
     avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg',
     isOnline: true
@@ -104,6 +105,7 @@ export const mockUsers: User[] = [
   {
     id: '3',
     name: 'Mike Johnson',
+    username: 'mike_j', // NUEVO
     email: 'mike@example.com',
     avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg',
     isOnline: false

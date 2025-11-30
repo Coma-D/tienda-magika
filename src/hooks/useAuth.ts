@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
-// Este hook ahora actúa como un "conector" seguro al contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   
@@ -9,7 +8,7 @@ export const useAuth = () => {
     throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   }
   
-  // Agregamos la función resetPassword que faltaba en el contexto original pero tu app usa
+  // Función simulada de resetPassword (ya existía)
   const resetPassword = async (email: string): Promise<boolean> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -18,5 +17,6 @@ export const useAuth = () => {
     });
   };
 
+  // Retornamos todo lo del contexto (incluyendo changePassword) + resetPassword
   return { ...context, resetPassword };
 };

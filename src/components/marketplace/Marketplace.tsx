@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Filter, DollarSign } from 'lucide-react';
+import { Plus, Filter, DollarSign, Trash2 } from 'lucide-react';
 import { MarketplaceListing, Card } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { CardDetail } from '../cards/CardDetail';
 import { PublishCardForm } from './PublishCardForm';
 import { useCart } from '../../hooks/useCart';
+import { useAuth } from '../../hooks/useAuth';
 import { Toast } from '../ui/Toast';
 import { CardFilters } from '../cards/CardFilters';
 import { formatCLP } from '../../utils/format';
@@ -14,10 +15,12 @@ import { t } from '../../data/constants';
 interface MarketplaceProps {
   listings: MarketplaceListing[];
   onAddListing: (listing: MarketplaceListing) => void;
+  onRemoveListing?: (listingId: string) => void;
   availableSets: string[];
 }
 
-export const Marketplace: React.FC<MarketplaceProps> = ({ listings, onAddListing, availableSets }) => {
+export const Marketplace: React.FC<MarketplaceProps> = ({ listings, onAddListing, onRemoveListing, availableSets }) => {
+  const { user } = useAuth();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showPublishForm, setShowPublishForm] = useState(false);
   const { addToCart } = useCart();
@@ -46,6 +49,12 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ listings, onAddListing
   });
 
   const handleBuyCard = (listing: MarketplaceListing) => {
+    // Evitar comprar tus propias cartas
+    if (user?.id === listing.seller.id) {
+      alert("No puedes comprar tus propias cartas.");
+      return;
+    }
+
     const cardForCart = { 
       ...listing.card, 
       price: listing.price,
@@ -112,49 +121,71 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ listings, onAddListing
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredListings.map((listing) => (
-          <div key={listing.id} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 overflow-hidden hover:shadow-2xl transition-all hover:border-gray-700 group">
-            <div className="cursor-pointer relative overflow-hidden" onClick={() => setSelectedCard(listing.card)}>
-              <img
-                src={listing.card.image}
-                alt={listing.card.name}
-                className="w-full h-64 object-cover object-top transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-80" />
-            </div>
-            
-            <div className="p-6 relative">
-              <div className="absolute -top-12 right-4 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-green-500/30 shadow-lg">
-                <span className="text-xl font-bold text-green-400">
-                  {formatCLP(listing.price)}
-                </span>
-              </div>
+        {filteredListings.map((listing) => {
+          const isMyListing = user?.id === listing.seller.id;
 
-              <h3 className="font-bold text-xl text-gray-100 mb-2 truncate">{listing.card.name}</h3>
-              
-              <div className="flex items-center justify-between mb-4">
-                <Badge variant="secondary" className="bg-blue-900/30 text-blue-300 border border-blue-800">
-                  {t(listing.condition)}
-                </Badge>
-                <Badge className="!bg-gray-800 !text-gray-200 !border-gray-600 border font-medium">
-                  {t(listing.card.rarity)}
-                </Badge>
+          return (
+            <div key={listing.id} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 overflow-hidden hover:shadow-2xl transition-all hover:border-gray-700 group">
+              <div className="cursor-pointer relative overflow-hidden" onClick={() => setSelectedCard(listing.card)}>
+                <img
+                  src={listing.card.image}
+                  alt={listing.card.name}
+                  className="w-full h-64 object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-80" />
+                
+                {/* BOTÓN DE ELIMINAR (Ahora visible en TODAS las publicaciones) */}
+                {onRemoveListing && (
+                  <button
+                    className="absolute top-2 left-2 z-20 p-2 bg-red-600/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:bg-red-700 hover:scale-110"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Evitar abrir detalles
+                      onRemoveListing(listing.id);
+                    }}
+                    title="Eliminar publicación"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
               
-              <div className="flex items-center mb-6 p-3 bg-gray-800/50 rounded-lg border border-gray-800">
-                <img src={listing.seller.avatar} alt={listing.seller.name} className="w-10 h-10 rounded-full mr-3 border border-gray-600" />
-                <div>
-                  <p className="text-sm font-bold text-gray-200">{listing.seller.name}</p>
-                  <p className="text-xs text-gray-500">Vendedor</p>
+              <div className="p-6 relative">
+                <div className="absolute -top-12 right-4 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-green-500/30 shadow-lg">
+                  <span className="text-xl font-bold text-green-400">
+                    {formatCLP(listing.price)}
+                  </span>
                 </div>
+
+                <h3 className="font-bold text-xl text-gray-100 mb-2 truncate">{listing.card.name}</h3>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <Badge variant="secondary" className="bg-blue-900/30 text-blue-300 border border-blue-800">
+                    {t(listing.condition)}
+                  </Badge>
+                  <Badge className="!bg-gray-800 !text-gray-200 !border-gray-600 border font-medium">
+                    {t(listing.card.rarity)}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center mb-6 p-3 bg-gray-800/50 rounded-lg border border-gray-800">
+                  <img src={listing.seller.avatar} alt={listing.seller.name} className="w-10 h-10 rounded-full mr-3 border border-gray-600 object-cover" />
+                  <div>
+                    <p className="text-sm font-bold text-gray-200">{listing.seller.name}</p>
+                    <p className="text-xs text-gray-500">Vendedor {isMyListing ? '(Tú)' : ''}</p>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => handleBuyCard(listing)} 
+                  disabled={isMyListing}
+                  className={`w-full font-bold h-10 shadow-lg ${isMyListing ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white shadow-green-900/20'}`}
+                >
+                  <DollarSign className="h-4 w-4 mr-2" /> {isMyListing ? 'Tu publicación' : 'Comprar ahora'}
+                </Button>
               </div>
-              
-              <Button onClick={() => handleBuyCard(listing)} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-10 shadow-lg shadow-green-900/20">
-                <DollarSign className="h-4 w-4 mr-2" /> Comprar ahora
-              </Button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredListings.length === 0 && (

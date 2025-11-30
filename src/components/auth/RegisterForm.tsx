@@ -15,6 +15,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -30,6 +31,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es requerido';
+    }
+
+    if (!formData.username.trim()) {
+      newErrors.username = 'El usuario es requerido';
+    } else if (/\s/.test(formData.username)) {
+      newErrors.username = 'El usuario no puede contener espacios';
     }
 
     if (!formData.email.trim()) {
@@ -57,12 +64,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
     setLoading(true);
 
-    const success = await register(formData.name, formData.email, formData.password);
+    const success = await register(formData.name, formData.username, formData.email, formData.password);
     
     if (success) {
       onSuccess();
     } else {
-      setErrors({ email: 'Este correo ya está registrado' });
+      setErrors({ 
+        username: 'El usuario o correo ya está registrado. Intenta con otro.' 
+      });
     }
     
     setLoading(false);
@@ -77,10 +86,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-gray-900 rounded-xl shadow-2xl border border-gray-800 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Crear Cuenta</h1>
-          <p className="text-gray-600 mt-2">Únete a la comunidad CardTrader</p>
+          <h1 className="text-2xl font-bold text-white">Crear Cuenta</h1>
+          <p className="text-gray-400 mt-2">Únete a la comunidad CardTrader</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -89,8 +98,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            placeholder="Tu nombre"
+            placeholder="Nombre Completo"
             error={errors.name}
+            required
+          />
+
+          <Input
+            label="Nombre de usuario"
+            type="text"
+            value={formData.username}
+            onChange={(e) => handleChange('username', e.target.value)}
+            placeholder="Usuario"
+            error={errors.username}
             required
           />
 
@@ -116,7 +135,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             />
             <button
               type="button"
-              className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-8 text-gray-400 hover:text-gray-200 transition-colors"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -135,7 +154,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-900/20"
             loading={loading}
           >
             Crear cuenta
@@ -143,11 +162,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </form>
 
         <div className="mt-6 text-center">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-400">
             ¿Ya tienes cuenta?{' '}
             <button
               onClick={onSwitchToLogin}
-              className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
               Iniciar Sesión
             </button>

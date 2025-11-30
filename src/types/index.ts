@@ -17,18 +17,19 @@ export interface Card {
 export interface User {
   id: string;
   name: string;
+  username: string;
   email: string;
   avatar: string;
   isOnline: boolean;
+  password?: string; // NUEVO: Para guardar la contraseña en localStorage
 }
 
-// NUEVO TIPO: Origen de la carta
 export type CardSource = 'catalog' | 'marketplace' | 'custom';
 
 export interface CartItem {
   card: Card;
   quantity: number;
-  source: CardSource; // NUEVO
+  source: CardSource;
 }
 
 export interface MarketplaceListing {
@@ -47,12 +48,13 @@ export interface ChatMessage {
   timestamp: string;
   isPrivate?: boolean;
   recipient?: User;
+  read?: boolean;
 }
 
 export interface CollectionCard extends Card {
   isFavorite: boolean;
   addedAt: string;
   quantity: number;
-  source: CardSource; // NUEVO
-  originalId?: string; // NUEVO (ID original del catálogo para sincronizar precios)
+  source: CardSource;
+  originalId?: string;
 }

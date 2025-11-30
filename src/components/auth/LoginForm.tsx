@@ -41,10 +41,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-gray-900 rounded-xl shadow-2xl border border-gray-800 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Iniciar Sesión</h1>
-          <p className="text-gray-600 mt-2">Accede a tu cuenta de CardTrader</p>
+          <h1 className="text-2xl font-bold text-white">Iniciar Sesión</h1>
+          <p className="text-gray-400 mt-2">Accede a tu cuenta de CardTrader</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -68,7 +68,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             />
             <button
               type="button"
-              className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-8 text-gray-400 hover:text-gray-200 transition-colors"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -76,14 +76,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className="bg-red-900/20 border border-red-900/50 rounded-lg p-3">
+              <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-900/20"
             loading={loading}
           >
             Iniciar Sesión
@@ -93,15 +93,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <div className="mt-6 text-center space-y-2">
           <button
             onClick={onSwitchToForgotPassword}
-            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
           >
             ¿Olvidaste tu contraseña?
           </button>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-400">
             ¿No tienes cuenta?{' '}
             <button
               onClick={onSwitchToRegister}
-              className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
               Registrarse
             </button>

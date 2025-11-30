@@ -14,24 +14,29 @@ import { Collection } from './components/collection/Collection';
 import { Marketplace } from './components/marketplace/Marketplace';
 import { Community } from './components/community/Community';
 import { Support } from './components/support/Support';
+import { Profile } from './components/profile/Profile';
+import { PublicCollection } from './components/collection/PublicCollection';
 import { useAuth } from './hooks/useAuth';
 import { useCart } from './hooks/useCart';
 import { useCollection } from './hooks/useCollection';
 import { mockCards, mockListings } from './data/mockData';
-import { Card, MarketplaceListing, CartItem } from './types';
+import { Card, MarketplaceListing, CartItem, User } from './types';
 import { ConfirmationModal } from './components/ui/ConfirmationModal';
 import { useNotification } from './hooks/useNotification';
 
-type View = 'auth' | 'catalog' | 'collection' | 'marketplace' | 'community' | 'support' | 'cart' | 'checkout';
+type View = 'auth' | 'catalog' | 'collection' | 'marketplace' | 'community' | 'support' | 'cart' | 'checkout' | 'profile' | 'other-collection' | 'user-history';
 type AuthView = 'login' | 'register' | 'forgot-password';
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { addToCart } = useCart();
-  const { user } = useAuth();
   const collection = useCollection(user?.id);
   const { addNotification } = useNotification();
   
+  // Estados para navegación entre perfiles
+  const [viewingProfileUser, setViewingProfileUser] = useState<User | null>(null);
+  const [viewingHistoryUser, setViewingHistoryUser] = useState<User | null>(null);
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -104,6 +109,8 @@ function App() {
   useEffect(() => {
     if (isAuthenticated) {
       localStorage.setItem('lastView', currentView);
+    } else {
+      setAuthView('login');
     }
   }, [currentView, isAuthenticated]);
 
@@ -116,6 +123,16 @@ function App() {
   const handleNavigate = (view: string) => {
     setCurrentView(view as View);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleViewUserCollection = (targetUser: User) => {
+    setViewingProfileUser(targetUser);
+    setCurrentView('other-collection');
+  };
+
+  const handleViewUserHistory = (targetUser: User) => {
+    setViewingHistoryUser(targetUser);
+    setCurrentView('user-history');
   };
 
   const handleAuthSuccess = () => {
@@ -137,6 +154,16 @@ function App() {
 
   const handleAddListing = (newListing: MarketplaceListing) => {
     setMarketplaceListings(prev => [newListing, ...prev]);
+  };
+
+  const handleRemoveListing = (listingId: string) => {
+    openConfirmation(
+      'Eliminar publicación',
+      '¿Estás seguro de que deseas eliminar esta carta del mercado? Esta acción es irreversible.',
+      () => {
+        setMarketplaceListings(prev => prev.filter(l => l.id !== listingId));
+      }
+    );
   };
 
   const handleUpdateCard = (updatedCard: Card) => {
@@ -210,7 +237,7 @@ function App() {
     return (
       <div className="min-h-screen bg-black">
         <Header currentView={currentView} onNavigate={handleNavigate} onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
-        <main className="pt-16">
+        <main className="pt-1"> {/* AJUSTADO A pt-1 (4px) */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             {authView === 'login' && <LoginForm onSwitchToRegister={() => setAuthView('register')} onSwitchToForgotPassword={() => setAuthView('forgot-password')} onSuccess={handleAuthSuccess} />}
             {authView === 'register' && <RegisterForm onSwitchToLogin={() => setAuthView('login')} onSuccess={handleAuthSuccess} />}
@@ -226,7 +253,7 @@ function App() {
       <Header currentView={currentView} onNavigate={handleNavigate} onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} currentView={currentView} onNavigate={handleNavigate} />
 
-      <main className="pt-16">
+      <main className="pt-1"> {/* AJUSTADO A pt-1 (4px) */}
         {currentView === 'catalog' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="relative rounded-2xl bg-gradient-to-r from-gray-900 to-black p-8 mb-10 text-gray-100 shadow-2xl overflow-hidden border border-gray-800">
@@ -264,12 +291,44 @@ function App() {
 
         {currentView === 'collection' && <Collection catalogSets={availableSets} collection={collection} />}
         
-        {currentView === 'marketplace' && <Marketplace listings={marketplaceListings} onAddListing={handleAddListing} availableSets={availableSets} />}
+        {currentView === 'other-collection' && viewingProfileUser && (
+          <PublicCollection 
+            userId={viewingProfileUser.id} 
+            userName={viewingProfileUser.username}
+            onBack={() => setCurrentView('community')} 
+            availableSets={availableSets}
+          />
+        )}
         
-        {currentView === 'community' && <Community />}
+        {currentView === 'user-history' && viewingHistoryUser && (
+          <Community 
+            forcedUser={viewingHistoryUser}
+            readOnly={true}
+            onBack={() => setCurrentView('community')}
+            onViewCollection={handleViewUserCollection}
+          />
+        )}
+        
+        {currentView === 'marketplace' && (
+          <Marketplace 
+            listings={marketplaceListings} 
+            onAddListing={handleAddListing} 
+            onRemoveListing={handleRemoveListing}
+            availableSets={availableSets} 
+          />
+        )}
+        
+        {currentView === 'community' && (
+          <Community 
+            onViewCollection={handleViewUserCollection} 
+            onViewHistory={handleViewUserHistory}
+          />
+        )}
+        
         {currentView === 'support' && <Support />}
         {currentView === 'cart' && <Cart onCheckout={() => setCurrentView('checkout')} />}
         {currentView === 'checkout' && <Checkout onBack={() => setCurrentView('cart')} onSuccess={handleCheckoutSuccess} />}
+        {currentView === 'profile' && <Profile />}
       </main>
 
       <ConfirmationModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} onConfirm={confirmModal.onConfirm} onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} />
